@@ -6,14 +6,20 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import net.archiloque.better_sql_orm_in_java.base_classes.Select;
+import net.archiloque.better_sql_orm_in_java.base_classes.field.Field;
 import net.archiloque.better_sql_orm_in_java.generator.bean.AbstractModelInfo;
+import net.archiloque.better_sql_orm_in_java.generator.bean.ColumnTypeInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.SchemaInfo;
+import net.archiloque.better_sql_orm_in_java.generator.bean.SimpleModelInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -80,6 +86,47 @@ public abstract class AbstractSelectGenerator {
                 returns(modelInfo.getModelClass()).
                 addStatement("return null").
                 build();
+    }
+
+
+    @NotNull
+    private MethodSpec generateWhere(ClassName realFieldClassName, Class criteriaClass, AbstractModelInfo returnModelInfo) {
+        return MethodSpec.methodBuilder("where").
+                addParameter(realFieldClassName, "field").
+                addParameter(criteriaClass, "criteria").
+                addModifiers(Modifier.PUBLIC).
+                addAnnotation(NotNull.class).
+                returns(returnModelInfo.getShortSelectClass()).
+                addStatement("return this").
+                build();
+    }
+
+    @NotNull
+    Stream<MethodSpec> generateWheres(SimpleModelInfo modelInfo, AbstractModelInfo returnModelInfo) {
+        return modelInfo.getColumnsTypes().stream().map(columnTypeAndNullable -> {
+            Class<? extends Field> fieldType = columnTypeAndNullable.getFieldType();
+            ClassName fieldClassName = ColumnTypeInfo.getClassName(schemaInfo, modelInfo, fieldType);
+            ClassName realFieldClassName = ClassName.get(schemaInfo.getModelPackage(), modelInfo.getModelClass().simpleName(), fieldClassName.simpleName());
+
+            // if it's nullable there's two methods :
+            // one with the nullable criteria and one with the non nullable one
+            List<MethodSpec> result = new ArrayList<>();
+
+            result.add(generateWhere(
+                    realFieldClassName,
+                    ColumnTypeInfo.getCriteria(columnTypeAndNullable.getColumnType(), columnTypeAndNullable.isNullable())
+                    , returnModelInfo
+            ));
+            if (columnTypeAndNullable.isNullable()) {
+                result.add(generateWhere(
+                        realFieldClassName,
+                        ColumnTypeInfo.getCriteria(columnTypeAndNullable.getColumnType(), false)
+                        , returnModelInfo
+                ));
+            }
+
+            return result;
+        }).flatMap(Collection::stream);
     }
 
 

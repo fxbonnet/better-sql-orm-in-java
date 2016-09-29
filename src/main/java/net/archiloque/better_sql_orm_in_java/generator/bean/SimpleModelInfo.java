@@ -142,6 +142,7 @@ public final class SimpleModelInfo extends AbstractModelInfo implements Comparab
     }
 
     @NotNull
+    @Override
     public ClassName getShortSelectClass() {
         return shortSelectClass;
     }

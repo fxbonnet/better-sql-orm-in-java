@@ -13,15 +13,12 @@ import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
  * Generate code for multiple models
  */
 public class MultipleModelGenerator extends AbstractModelGenerator {
-
-    private final Logger logger = Logger.getLogger(MultipleModelGenerator.class.getName());
 
     @NotNull
     private final MultipleModelInfo modelInfo;

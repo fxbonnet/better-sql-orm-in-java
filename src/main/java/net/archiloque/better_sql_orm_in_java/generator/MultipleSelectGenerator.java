@@ -7,14 +7,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
+import java.util.Arrays;
 
 /**
  * Generate code for multiple select
  */
 public class MultipleSelectGenerator extends AbstractSelectGenerator {
-
-    private final Logger logger = Logger.getLogger(MultipleSelectGenerator.class.getName());
 
     @NotNull
     private final MultipleModelInfo modelInfo;
@@ -32,6 +30,9 @@ public class MultipleSelectGenerator extends AbstractSelectGenerator {
         TypeSpec.Builder classBuilder = initiatilizeClass(modelInfo);
         classBuilder.addMethod(generateFetch(modelInfo));
         classBuilder.addMethod(generateFetchFirst(modelInfo));
+        Arrays.stream(modelInfo.getModelInfos()).forEach(simpleModelInfo -> {
+            generateWheres(simpleModelInfo, modelInfo).forEach(classBuilder::addMethod);
+        });
         writeClass(classBuilder);
     }
 

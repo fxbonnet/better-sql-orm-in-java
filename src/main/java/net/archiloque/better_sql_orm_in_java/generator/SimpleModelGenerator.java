@@ -17,16 +17,12 @@ import org.jetbrains.annotations.NotNull;
 import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
  * Generate simple models
  */
 public class SimpleModelGenerator extends AbstractModelGenerator {
-
-    @NotNull
-    private final Logger logger = Logger.getLogger(SimpleModelGenerator.class.getName());
 
     @NotNull
     private final SimpleModelInfo modelInfo;
