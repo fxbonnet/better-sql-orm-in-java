@@ -1,0 +1,48 @@
+package net.archiloque.better_sql_orm_in_java.schema.bean;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+
+/**
+ * A foreign key.
+ */
+@XStreamAlias("foreignKey")
+public class ForeignKey {
+
+    @XStreamAsAttribute
+    private String name;
+
+    @XStreamAsAttribute
+    private String references;
+
+    @XStreamAsAttribute
+    private boolean nullable;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getReferences() {
+        return references;
+    }
+
+    public void setReferences(String references) {
+        this.references = references;
+    }
+
+    public boolean isNullable() {
+        return nullable;
+    }
+
+    public void setNullable(boolean nullable) {
+        this.nullable = nullable;
+    }
+
+    public void validate() {
+
+    }
+}
