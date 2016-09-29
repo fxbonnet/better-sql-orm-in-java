@@ -2,7 +2,6 @@ package net.archiloque.better_sql_orm_in_java.generator;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
@@ -10,8 +9,8 @@ import net.archiloque.better_sql_orm_in_java.base_classes.criteria.Criteria;
 import net.archiloque.better_sql_orm_in_java.base_classes.field.Field;
 import net.archiloque.better_sql_orm_in_java.generator.bean.ColumnInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.ColumnTypeInfo;
-import net.archiloque.better_sql_orm_in_java.generator.bean.ModelInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.SchemaInfo;
+import net.archiloque.better_sql_orm_in_java.generator.bean.SimpleModelInfo;
 import org.apache.commons.lang3.text.WordUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,71 +23,57 @@ import java.util.stream.Stream;
 /**
  * Generate simple models
  */
-public class SimpleModelGenerator {
+public class SimpleModelGenerator extends AbstractModelGenerator {
 
     @NotNull
     private final Logger logger = Logger.getLogger(SimpleModelGenerator.class.getName());
 
     @NotNull
-    private final File basePath;
+    private final SimpleModelInfo modelInfo;
 
-    @NotNull
-    private final File modelBasePath;
-
-    @NotNull
-    private final SchemaInfo schemaInfo;
-
-    @NotNull
-    private final ModelInfo modelInfo;
-
-    public SimpleModelGenerator(@NotNull File basePath, @NotNull File modelBasePath, @NotNull SchemaInfo schemaInfo, @NotNull ModelInfo modelInfo) {
-        this.basePath = basePath;
-        this.modelBasePath = modelBasePath;
-        this.schemaInfo = schemaInfo;
+    public SimpleModelGenerator(
+            @NotNull File basePath,
+            @NotNull File modelBasePath,
+            @NotNull SchemaInfo schemaInfo,
+            @NotNull SimpleModelInfo modelInfo) {
+        super(basePath, modelBasePath, schemaInfo);
         this.modelInfo = modelInfo;
     }
 
     public void generate() throws IOException {
-        File modelFile = new File(modelBasePath, modelInfo.getModelClass().simpleName() + ".java");
-        logger.info("Generating Model for [" + modelInfo.getModel().getId() + "] at [" + modelFile.getAbsolutePath() + "]");
+        TypeSpec.Builder classBuilder = initializeClass(modelInfo);
 
-        TypeSpec.Builder modelTypeSpec = TypeSpec.classBuilder(modelInfo.getModelClass()).
-                addModifiers(Modifier.PUBLIC, Modifier.FINAL).
-                addJavadoc("This class has been generated, DO NOT EDIT IT MANUALLY !!\n").
-                superclass(net.archiloque.better_sql_orm_in_java.base_classes.Model.class);
-
-        modelTypeSpec.addMethod(generateSelect());
+        classBuilder.addMethod(generateSelect());
 
         // Generate fields
-        generateFieldsForModel().forEach(modelTypeSpec::addField);
+        generateFieldsAttributes().forEach(classBuilder::addField);
 
         // Generate fields
-        generateGettersForModel().forEach(modelTypeSpec::addMethod);
+        generateGetters().forEach(classBuilder::addMethod);
 
         // Generate columns declarations
-        generateColumnsForModel().forEach(modelTypeSpec::addField);
+        generateColumnsConstants().forEach(classBuilder::addField);
 
         // Generate the helpers for the columns types
-        generateColumnTypes().forEach(modelTypeSpec::addType);
+        generateColumnTypes().forEach(classBuilder::addType);
 
-        // Generate foreign keys
-        generateForeignKeys().forEach(modelTypeSpec::addMethod);
-        generateForeignedKeys().forEach(modelTypeSpec::addMethod);
+        // Generate foreign keys fetch
+        generateForeignKeysFetch().forEach(classBuilder::addMethod);
+        generateForeignedKeysFetch().forEach(classBuilder::addMethod);
 
         // Write the class
-        JavaFile.builder(schemaInfo.getModelPackage(), modelTypeSpec.build()).
-                build().writeTo(basePath);
+        writeClass(classBuilder);
     }
 
     @NotNull
-    private Stream<MethodSpec> generateForeignKeys() {
+    private Stream<MethodSpec> generateForeignKeysFetch() {
         return modelInfo.getForeignKeyInfos().stream().map(foreignKeyInfo -> {
             // generate something like
             //   public CustomerModel fetchCustomer() {
             //      return CustomerModel.select().where(CustomerModel.CUSTOMER_ID, Criteria.integerEquals(customerId)).fetchFirst();
             // }
 
-            String methodName = "fetch" + WordUtils.capitalize(foreignKeyInfo.getSourceModel().getModel().getId());
+            String methodName = "fetch" + WordUtils.capitalize(foreignKeyInfo.getForeignKey().getName());
 
             ClassName targetModelClassName = foreignKeyInfo.getTargetModel().getModelClass();
             ColumnInfo targetPrimaryKeyColumnInfo = foreignKeyInfo.getTargetModel().getPrimaryKeyInfo().getColumnInfo();
@@ -111,14 +96,14 @@ public class SimpleModelGenerator {
     }
 
     @NotNull
-    private Stream<MethodSpec> generateForeignedKeys() {
+    private Stream<MethodSpec> generateForeignedKeysFetch() {
         return modelInfo.getForeignKeyedInfos().stream().map(foreignKeyInfo -> {
             // generate something like
             //   public Stream<OrderModel> fetchOrders() {
             //      return OrderModel.select().where(OrderModel.CUSTOMER_ID, Criteria.integerEquals(customer_id)).fetch();
             // }
 
-            String methodName = "fetch" + WordUtils.capitalize(foreignKeyInfo.getSourceModel().getModel().getId() + "s");
+            String methodName = "fetch" + WordUtils.capitalize(foreignKeyInfo.getForeignKey().getReverseName());
             ClassName sourceModelClassName = foreignKeyInfo.getSourceModel().getModelClass();
             ColumnInfo foreignKeyColumnInfo = foreignKeyInfo.getColumnInfo();
             ColumnInfo localKeyColumnInfo = modelInfo.getPrimaryKeyInfo().getColumnInfo();
@@ -150,7 +135,7 @@ public class SimpleModelGenerator {
     }
 
     @NotNull
-    private Stream<FieldSpec> generateColumnsForModel() {
+    private Stream<FieldSpec> generateColumnsConstants() {
         return modelInfo.getColumnInfos().stream().map(columnInfo -> {
             ColumnTypeInfo columnTypeInfo = columnInfo.getColumnTypeInfo();
             String columnName = columnInfo.getColumn().getName();
@@ -163,21 +148,15 @@ public class SimpleModelGenerator {
     }
 
     @NotNull
-    private Stream<MethodSpec> generateGettersForModel() {
+    private Stream<MethodSpec> generateGetters() {
         return modelInfo.getColumnInfos().stream().map(columnInfo -> {
             Class valueClass = ColumnTypeInfo.getValueClass(columnInfo.getColumnTypeInfo().getColumnType());
-            String getterMethodName = "get" + WordUtils.capitalize(columnInfo.getColumnFieldName());
-            return MethodSpec.
-                    methodBuilder(getterMethodName).
-                    addModifiers(Modifier.PUBLIC).
-                    returns(valueClass).
-                    addStatement("return " + columnInfo.getColumnFieldName()).
-                    build();
+            return createGetter(columnInfo.getColumnFieldName(), valueClass);
         });
     }
 
     @NotNull
-    private Stream<FieldSpec> generateFieldsForModel() {
+    private Stream<FieldSpec> generateFieldsAttributes() {
         return modelInfo.getColumnInfos().stream().map(columnInfo -> {
             ColumnTypeInfo columnTypeInfo = columnInfo.getColumnTypeInfo();
             Class valueClass = ColumnTypeInfo.getValueClass(columnTypeInfo.getColumnType());

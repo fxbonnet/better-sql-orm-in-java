@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 /**
  * Info for a model
  */
-public final class ModelInfo {
+public final class SimpleModelInfo extends AbstractModelInfo implements Comparable<SimpleModelInfo> {
 
     @NotNull
     private final Model model;
@@ -53,7 +53,7 @@ public final class ModelInfo {
     @NotNull
     private PrimaryKeyInfo primaryKeyInfo;
 
-    public ModelInfo(@NotNull Model model, @NotNull SchemaInfo schemaInfo) {
+    public SimpleModelInfo(@NotNull Model model, @NotNull SchemaInfo schemaInfo) {
         this.model = model;
         this.schemaInfo = schemaInfo;
         baseClassName = WordUtils.capitalize(model.getId());
@@ -91,7 +91,7 @@ public final class ModelInfo {
 
 
         for (ForeignKey foreignKey : model.getForeignKeys()) {
-            ModelInfo targetModelInfo = schemaInfo.getModelInfoMap().get(foreignKey.getReferences());
+            SimpleModelInfo targetModelInfo = schemaInfo.getModelInfoMap().get(foreignKey.getReferences());
             if (targetModelInfo == null) {
                 throw new InvalidSchemaException("Unknown reference [" + foreignKey.getReferences() + "] in model [" + model.getId() + "]");
             }
@@ -130,11 +130,13 @@ public final class ModelInfo {
     }
 
     @NotNull
+    @Override
     public ClassName getModelClass() {
         return modelClass;
     }
 
     @NotNull
+    @Override
     public ClassName getSelectClass() {
         return selectClass;
     }
@@ -154,6 +156,13 @@ public final class ModelInfo {
         return foreignKeyInfos;
     }
 
+    @Override
+    public String toString() {
+        return "SimpleModelInfo{" +
+                "model=" + model +
+                '}';
+    }
+
     @NotNull
     public List<ForeignKeyInfo> getForeignKeyedInfos() {
         return foreignKeyedInfos;
@@ -162,6 +171,11 @@ public final class ModelInfo {
     @NotNull
     public PrimaryKeyInfo getPrimaryKeyInfo() {
         return primaryKeyInfo;
+    }
+
+    @Override
+    public int compareTo(@NotNull SimpleModelInfo o) {
+        return getModel().getId().compareTo(o.getModel().getId());
     }
 
     /**

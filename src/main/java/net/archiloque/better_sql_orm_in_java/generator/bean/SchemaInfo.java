@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Info for generation
@@ -26,7 +27,7 @@ public final class SchemaInfo {
     private final String selectPackage;
 
     @NotNull
-    private final Map<String, ModelInfo> modelInfoMap = new HashMap<>();
+    private final Map<String, SimpleModelInfo> modelInfoMap = new HashMap<>();
 
     @NotNull
     private final List<MultipleModelInfo> multipleModelsInfos = new ArrayList<>();
@@ -39,22 +40,35 @@ public final class SchemaInfo {
 
     public void process() throws InvalidSchemaException {
         for (Model model : schema.getModels()) {
-            ModelInfo modelInfo = new ModelInfo(model, this);
+            SimpleModelInfo modelInfo = new SimpleModelInfo(model, this);
             modelInfoMap.put(model.getId(), modelInfo);
         }
-        for (ModelInfo modelInfo : modelInfoMap.values()) {
+        for (SimpleModelInfo modelInfo : modelInfoMap.values()) {
             modelInfo.processSecondPass();
         }
 
         // @TODO : simplistic implementation
-        for (ModelInfo modelInfo : modelInfoMap.values()) {
+        for (SimpleModelInfo modelInfo : modelInfoMap.values()) {
             for (ForeignKeyInfo foreignKeyInfo : modelInfo.getForeignKeyInfos()) {
-                ModelInfo[] modelInfos = {foreignKeyInfo.getSourceModel(), foreignKeyInfo.getTargetModel()};
-                Arrays.sort(modelInfos, (o1, o2) -> o1.getModel().getId().compareTo(o2.getModel().getId()));
+                SimpleModelInfo[] modelInfos = {foreignKeyInfo.getSourceModel(), foreignKeyInfo.getTargetModel()};
+                Arrays.sort(modelInfos);
                 multipleModelsInfos.add(new MultipleModelInfo(modelInfos, this));
             }
         }
     }
+
+    public MultipleModelInfo getMultipleModelInfo(SimpleModelInfo[] modelInfos) {
+        Arrays.sort(modelInfos);
+        Optional<MultipleModelInfo> any = multipleModelsInfos.
+                stream().
+                filter(multipleModelInfo -> Arrays.equals(multipleModelInfo.getModelInfos(), modelInfos)).
+                findAny();
+        if(! any.isPresent()) {
+            throw new RuntimeException("Multiple model info not found for " + Arrays.toString(modelInfos));
+        } else {
+            return any.get();
+        }
+    };
 
     @NotNull
     public List<MultipleModelInfo> getMultipleModelsInfos() {
@@ -62,7 +76,7 @@ public final class SchemaInfo {
     }
 
     @NotNull
-    public Map<String, ModelInfo> getModelInfoMap() {
+    public Map<String, SimpleModelInfo> getModelInfoMap() {
         return modelInfoMap;
     }
 

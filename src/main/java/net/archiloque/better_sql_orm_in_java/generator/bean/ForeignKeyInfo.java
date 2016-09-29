@@ -12,18 +12,18 @@ public class ForeignKeyInfo {
     private final ForeignKey foreignKey;
 
     @NotNull
-    private final ModelInfo sourceModel;
+    private final SimpleModelInfo sourceModel;
 
     @NotNull
-    private final ModelInfo targetModel;
+    private final SimpleModelInfo targetModel;
 
     @NotNull
     private final ColumnInfo columnInfo;
 
     public ForeignKeyInfo(
             @NotNull ForeignKey foreignKey,
-            @NotNull ModelInfo containReferenced,
-            @NotNull ModelInfo isReferenced,
+            @NotNull SimpleModelInfo containReferenced,
+            @NotNull SimpleModelInfo isReferenced,
             @NotNull ColumnInfo columnInfo) {
         this.foreignKey = foreignKey;
         this.sourceModel = containReferenced;
@@ -37,12 +37,12 @@ public class ForeignKeyInfo {
     }
 
     @NotNull
-    public ModelInfo getSourceModel() {
+    public SimpleModelInfo getSourceModel() {
         return sourceModel;
     }
 
     @NotNull
-    public ModelInfo getTargetModel() {
+    public SimpleModelInfo getTargetModel() {
         return targetModel;
     }
 

@@ -71,4 +71,11 @@ public class Model {
             foreignKey.validate();
         }
     }
+
+    @Override
+    public String toString() {
+        return "Model{" +
+                "id='" + id + '\'' +
+                '}';
+    }
 }

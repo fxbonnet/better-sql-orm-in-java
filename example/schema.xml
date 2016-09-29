@@ -14,6 +14,6 @@
         <column name="delivery_date" type="Date" nullable="true"/>
         <column name="amount" type="Integer" nullable="false"/>
         <column name="customer_id" type="Integer" nullable="false"/>
-        <foreignKey name="customer" column="customer_id" references="customer"/>
+        <foreignKey name="customer" reverseName="orders" column="customer_id" references="customer"/>
     </model>
 </schema>

@@ -13,6 +13,9 @@ public class ForeignKey {
     private String name;
 
     @XStreamAsAttribute
+    private String reverseName;
+
+    @XStreamAsAttribute
     private String column;
 
     @XStreamAsAttribute
@@ -46,7 +49,6 @@ public class ForeignKey {
     }
 
     public void validate() {
-
     }
 
     public String getColumn() {
@@ -55,5 +57,13 @@ public class ForeignKey {
 
     public void setColumn(String column) {
         this.column = column;
+    }
+
+    public void setReverseName(String reverseName) {
+        this.reverseName = reverseName;
+    }
+
+    public String getReverseName() {
+        return reverseName;
     }
 }

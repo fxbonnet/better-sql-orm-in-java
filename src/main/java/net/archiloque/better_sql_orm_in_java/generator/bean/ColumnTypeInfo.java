@@ -23,14 +23,14 @@ public final class ColumnTypeInfo {
     private final SchemaInfo schemaInfo;
 
     @NotNull
-    private final ModelInfo modelInfo;
+    private final SimpleModelInfo modelInfo;
 
     @NotNull
     private final Column.ColumnType columnType;
 
     private final boolean nullable;
 
-    public ColumnTypeInfo(@NotNull SchemaInfo schemaInfo, @NotNull ModelInfo modelInfo, @NotNull Column.ColumnType columnType, boolean nullable) {
+    public ColumnTypeInfo(@NotNull SchemaInfo schemaInfo, @NotNull SimpleModelInfo modelInfo, @NotNull Column.ColumnType columnType, boolean nullable) {
         this.schemaInfo = schemaInfo;
         this.modelInfo = modelInfo;
         this.columnType = columnType;
@@ -62,7 +62,7 @@ public final class ColumnTypeInfo {
     }
 
     @NotNull
-    public static ClassName getClassName(SchemaInfo schemaInfo, ModelInfo modelInfo, Class<? extends Field> fieldType) {
+    public static ClassName getClassName(SchemaInfo schemaInfo, SimpleModelInfo modelInfo, Class<? extends Field> fieldType) {
         return ClassName.get(schemaInfo.getModelPackage(), modelInfo.getModelClass().simpleName() + fieldType.getSimpleName());
     }
 

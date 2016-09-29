@@ -9,32 +9,42 @@ import java.util.stream.Collectors;
 /**
  * Infos for multiple models
  */
-public class MultipleModelInfo {
+public class MultipleModelInfo extends AbstractModelInfo {
 
     @NotNull
-    private final ModelInfo[] modelInfos;
+    private final SimpleModelInfo[] modelInfos;
 
     @NotNull
     private final ClassName modelClass;
 
+    @NotNull
+    private final ClassName selectClass;
 
-    public MultipleModelInfo(@NotNull ModelInfo[] modelInfos, @NotNull SchemaInfo schemaInfo) {
+    public MultipleModelInfo(@NotNull SimpleModelInfo[] modelInfos, @NotNull SchemaInfo schemaInfo) {
         this.modelInfos = modelInfos;
 
-        String className = Arrays.
+        String baseClass = Arrays.
                 stream(modelInfos).
-                map(ModelInfo::getBaseClassName).
-                collect(Collectors.joining("")) + "Model";
-        modelClass = ClassName.get(schemaInfo.getModelPackage(), className + "Model");
+                map(SimpleModelInfo::getBaseClassName).
+                collect(Collectors.joining(""));
+        modelClass = ClassName.get(schemaInfo.getModelPackage(), baseClass + "Model" );
+        selectClass = ClassName.get(schemaInfo.getSelectPackage(), baseClass + "Select" );
     }
 
     @NotNull
+    @Override
     public ClassName getModelClass() {
         return modelClass;
     }
 
     @NotNull
-    public ModelInfo[] getModelInfos() {
+    public SimpleModelInfo[] getModelInfos() {
         return modelInfos;
+    }
+
+    @NotNull
+    @Override
+    public ClassName getSelectClass() {
+        return selectClass;
     }
 }

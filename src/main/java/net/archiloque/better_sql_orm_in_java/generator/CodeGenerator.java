@@ -1,6 +1,6 @@
 package net.archiloque.better_sql_orm_in_java.generator;
 
-import net.archiloque.better_sql_orm_in_java.generator.bean.ModelInfo;
+import net.archiloque.better_sql_orm_in_java.generator.bean.SimpleModelInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.MultipleModelInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.SchemaInfo;
 import net.archiloque.better_sql_orm_in_java.schema.bean.Schema;
@@ -60,7 +60,7 @@ public class CodeGenerator {
 
     private void generateModels() throws IOException {
         File modelBasePath = new File(basePath, "model");
-        for (ModelInfo modelInfo : schemaInfo.getModelInfoMap().values()) {
+        for (SimpleModelInfo modelInfo : schemaInfo.getModelInfoMap().values()) {
             new SimpleModelGenerator(basePath, modelBasePath, schemaInfo, modelInfo).generate();
         }
         for (MultipleModelInfo multipleModelInfo : schemaInfo.getMultipleModelsInfos()) {
@@ -70,9 +70,13 @@ public class CodeGenerator {
 
     private void generateSelects() throws IOException {
         File selectBasePath = new File(basePath, "select");
-        for (ModelInfo modelInfo : schemaInfo.getModelInfoMap().values()) {
-            new SelectGenerator(basePath, selectBasePath, schemaInfo, modelInfo).generate();
+        for (SimpleModelInfo modelInfo : schemaInfo.getModelInfoMap().values()) {
+            new SimpleSelectGenerator(basePath, selectBasePath, schemaInfo, modelInfo).generate();
         }
+        for (MultipleModelInfo multipleModelInfo : schemaInfo.getMultipleModelsInfos()) {
+            new MultipleSelectGenerator(basePath, selectBasePath, schemaInfo, multipleModelInfo).generate();
+        }
+
     }
 
 }
