@@ -9,9 +9,10 @@
     </model>
     <model id="order" tableName="order">
         <primaryKey name="id"/>
-        <foreignKey name="customer_id" references="customer" nullable="false"/>
         <column name="date" type="Date" nullable="false"/>
         <column name="delivery_date" type="Date" nullable="true"/>
         <column name="amount" type="Integer" nullable="false"/>
+        <column name="customer_id" type="Integer" nullable="false"/>
+        <foreignKey name="customer" column="customer_id" references="customer"/>
     </model>
 </schema>

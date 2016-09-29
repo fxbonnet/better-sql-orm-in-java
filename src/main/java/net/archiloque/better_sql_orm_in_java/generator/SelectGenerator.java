@@ -8,7 +8,7 @@ import com.squareup.javapoet.TypeSpec;
 import net.archiloque.better_sql_orm_in_java.base_classes.Select;
 import net.archiloque.better_sql_orm_in_java.base_classes.field.Field;
 import net.archiloque.better_sql_orm_in_java.generator.bean.ColumnTypeInfo;
-import net.archiloque.better_sql_orm_in_java.generator.bean.GeneratorInfo;
+import net.archiloque.better_sql_orm_in_java.generator.bean.SchemaInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.ModelInfo;
 
 import javax.lang.model.element.Modifier;
@@ -30,13 +30,13 @@ public class SelectGenerator {
 
     private final File basePath;
     private final File selectBasePath;
-    private final GeneratorInfo generatorInfo;
+    private final SchemaInfo schemaInfo;
     private final ModelInfo modelInfo;
 
-    public SelectGenerator(File basePath, File selectBasePath, GeneratorInfo generatorInfo, ModelInfo modelInfo){
+    public SelectGenerator(File basePath, File selectBasePath, SchemaInfo schemaInfo, ModelInfo modelInfo){
         this.basePath = basePath;
         this.selectBasePath = selectBasePath;
-        this.generatorInfo = generatorInfo;
+        this.schemaInfo = schemaInfo;
         this.modelInfo = modelInfo;
     }
 
@@ -63,7 +63,7 @@ public class SelectGenerator {
     private Stream<MethodSpec> generateWheres() {
         return modelInfo.getColumnsTypes().stream().map(columnTypeAndNullable -> {
             Class<? extends Field> fieldType = columnTypeAndNullable.getFieldType();
-            ClassName fieldClassName = ColumnTypeInfo.getClassName(generatorInfo, modelInfo, fieldType);
+            ClassName fieldClassName = ColumnTypeInfo.getClassName(schemaInfo, modelInfo, fieldType);
             ClassName realFieldClassName = ClassName.get("", modelInfo.getModelClass().simpleName(), fieldClassName.simpleName());
 
             // if it's nullable there's two method :
@@ -100,7 +100,7 @@ public class SelectGenerator {
         classBuilder.addMethod(generateFetch());
 
         JavaFile.
-                builder(generatorInfo.getSelectPackage(), classBuilder.build()).
+                builder(schemaInfo.getSelectPackage(), classBuilder.build()).
                 build().writeTo(basePath);
     }
 }

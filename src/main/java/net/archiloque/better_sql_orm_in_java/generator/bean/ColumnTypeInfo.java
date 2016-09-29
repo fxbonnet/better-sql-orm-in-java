@@ -18,7 +18,7 @@ import java.util.Date;
  */
 public final class ColumnTypeInfo {
 
-    private final GeneratorInfo generatorInfo;
+    private final SchemaInfo schemaInfo;
 
     private final ModelInfo modelInfo;
 
@@ -26,8 +26,8 @@ public final class ColumnTypeInfo {
 
     private final boolean nullable;
 
-    public ColumnTypeInfo(GeneratorInfo generatorInfo, ModelInfo modelInfo, Column.ColumnType columnType, boolean nullable) {
-        this.generatorInfo = generatorInfo;
+    public ColumnTypeInfo(SchemaInfo schemaInfo, ModelInfo modelInfo, Column.ColumnType columnType, boolean nullable) {
+        this.schemaInfo = schemaInfo;
         this.modelInfo = modelInfo;
         this.columnType = columnType;
         this.nullable = nullable;
@@ -50,11 +50,11 @@ public final class ColumnTypeInfo {
     }
 
     public ClassName getClassName(){
-        return getClassName(generatorInfo, modelInfo, getFieldType());
+        return getClassName(schemaInfo, modelInfo, getFieldType());
     }
 
-    public static ClassName getClassName(GeneratorInfo generatorInfo, ModelInfo modelInfo, Class<? extends Field> fieldType){
-        return ClassName.get(generatorInfo.getModelPackage(), modelInfo.getModelClassName() + fieldType.getSimpleName());
+    public static ClassName getClassName(SchemaInfo schemaInfo, ModelInfo modelInfo, Class<? extends Field> fieldType){
+        return ClassName.get(schemaInfo.getModelPackage(), modelInfo.getModelClassName() + fieldType.getSimpleName());
     }
 
     public static Class<? extends Field> getFieldType(Column.ColumnType columnType, boolean nullable) {

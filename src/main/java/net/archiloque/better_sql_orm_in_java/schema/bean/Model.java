@@ -44,6 +44,9 @@ public class Model {
     }
 
     public List<ForeignKey> getForeignKeys() {
+        if(foreignKeys == null) {
+            foreignKeys = new ArrayList<>();
+        }
         return foreignKeys;
     }
 

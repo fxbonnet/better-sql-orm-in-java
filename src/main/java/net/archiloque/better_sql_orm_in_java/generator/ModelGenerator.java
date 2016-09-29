@@ -4,11 +4,12 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import net.archiloque.better_sql_orm_in_java.base_classes.field.Field;
 import net.archiloque.better_sql_orm_in_java.generator.bean.ColumnTypeInfo;
-import net.archiloque.better_sql_orm_in_java.generator.bean.GeneratorInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.ModelInfo;
+import net.archiloque.better_sql_orm_in_java.generator.bean.SchemaInfo;
 import org.apache.commons.lang3.text.WordUtils;
 
 import javax.lang.model.element.Modifier;
@@ -26,13 +27,13 @@ public class ModelGenerator {
 
     private final File basePath;
     private final File modelBasePath;
-    private final GeneratorInfo generatorInfo;
+    private final SchemaInfo schemaInfo;
     private final ModelInfo modelInfo;
 
-    public ModelGenerator(File basePath, File modelBasePath, GeneratorInfo generatorInfo, ModelInfo modelInfo) {
+    public ModelGenerator(File basePath, File modelBasePath, SchemaInfo schemaInfo, ModelInfo modelInfo) {
         this.basePath = basePath;
         this.modelBasePath = modelBasePath;
-        this.generatorInfo = generatorInfo;
+        this.schemaInfo = schemaInfo;
         this.modelInfo = modelInfo;
     }
 
@@ -59,11 +60,36 @@ public class ModelGenerator {
         // Generate the helpers for the columns types
         generateColumnTypes().forEach(modelTypeSpec::addType);
 
+        // Generate foreign keys
+        generateForeignKeys().forEach(modelTypeSpec::addMethod);
+        generateForeignedKeys().forEach(modelTypeSpec::addMethod);
+
         // Write the class
-        JavaFile.builder(generatorInfo.getModelPackage(), modelTypeSpec.build()).
+        JavaFile.builder(schemaInfo.getModelPackage(), modelTypeSpec.build()).
                 build().writeTo(basePath);
     }
 
+    private Stream<MethodSpec> generateForeignKeys() {
+        return modelInfo.getForeignKeyInfos().stream().map(foreignKeyInfo -> {
+            String methodName = "fetch" + WordUtils.capitalize(foreignKeyInfo.getForeignKey().getName());
+            return MethodSpec.methodBuilder(methodName).
+                    addModifiers(Modifier.PUBLIC).
+                    returns(foreignKeyInfo.getSourceModel().getModelClass()).
+                    addStatement("return null").
+                    build();
+        });
+    }
+
+    private Stream<MethodSpec> generateForeignedKeys() {
+        return modelInfo.getForeignKeyedInfos().stream().map(foreignKeyInfo -> {
+            String methodName = "fetch" + WordUtils.capitalize(foreignKeyInfo.getSourceModel().getModel().getId() + "s");
+            return MethodSpec.methodBuilder(methodName).
+                    addModifiers(Modifier.PUBLIC).
+                    returns(ParameterizedTypeName.get(ClassName.get(Stream.class), foreignKeyInfo.getSourceModel().getModelClass())).
+                    addStatement("return null").
+                    build();
+        });
+    }
     private MethodSpec generateSelect() {
         return MethodSpec.methodBuilder("select").
                 addModifiers(Modifier.PUBLIC, Modifier.STATIC).
@@ -112,7 +138,7 @@ public class ModelGenerator {
     private Stream<TypeSpec> generateColumnTypes() {
         return modelInfo.getColumnsTypes().stream().map(columnTypeAndNullable -> {
             Class<? extends Field> fieldType = columnTypeAndNullable.getFieldType();
-            ClassName className = ColumnTypeInfo.getClassName(generatorInfo, modelInfo, fieldType);
+            ClassName className = ColumnTypeInfo.getClassName(schemaInfo, modelInfo, fieldType);
             MethodSpec columnTypeConstructor = MethodSpec.
                     constructorBuilder().
                     addModifiers(Modifier.PRIVATE).

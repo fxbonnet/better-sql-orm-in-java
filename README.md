@@ -33,14 +33,20 @@ With this grand plan, see how good is the API can be.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<modelDescription>
-    <model name="customer">
-        <primaryKey name="id"/>
-        <column name="name" type="String" nullable=true />
+<schema targetPackage="net.archiloque.better_sql_orm_in_java.example">
+    <model id="customer" tableName="customer">
+        <primaryKey column="id"/>
+        <column name="id" type="Integer" nullable="false"/>
+        <column name="name" type="String" nullable="false"/>
+        <column name="email" type="String" nullable="true"/>
+        <column name="birth" type="Date" nullable="true"/>
     </model>
-    <model name="order">
+    <model id="order" tableName="order">
         <primaryKey name="id"/>
-        <column name="name" type="String" nullable=true />
+        <foreignKey name="customer_id" references="customer" nullable="false"/>
+        <column name="date" type="Date" nullable="false"/>
+        <column name="delivery_date" type="Date" nullable="true"/>
+        <column name="amount" type="Integer" nullable="false"/>
     </model>
-</modelDescription>
+</schema>
 ``

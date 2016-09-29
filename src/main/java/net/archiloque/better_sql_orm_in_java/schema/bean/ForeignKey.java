@@ -13,6 +13,9 @@ public class ForeignKey {
     private String name;
 
     @XStreamAsAttribute
+    private String column;
+
+    @XStreamAsAttribute
     private String references;
 
     @XStreamAsAttribute
@@ -44,5 +47,13 @@ public class ForeignKey {
 
     public void validate() {
 
+    }
+
+    public String getColumn() {
+        return column;
+    }
+
+    public void setColumn(String column) {
+        this.column = column;
     }
 }
