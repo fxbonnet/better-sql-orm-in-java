@@ -12,6 +12,7 @@ public abstract class Select<T extends Model> {
 
     /**
      * Fetch the select.
+     *
      * @return a Stream with the result.
      */
     @NotNull
@@ -19,6 +20,7 @@ public abstract class Select<T extends Model> {
 
     /**
      * Fetch the firest element of a select.
+     *
      * @return a result.
      */
     @Nullable

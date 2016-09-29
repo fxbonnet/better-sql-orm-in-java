@@ -39,7 +39,7 @@ public class Schema {
         models.add(model);
     }
 
-    public void validate(){
+    public void validate() {
         for (Model model : models) {
             model.validate();
         }

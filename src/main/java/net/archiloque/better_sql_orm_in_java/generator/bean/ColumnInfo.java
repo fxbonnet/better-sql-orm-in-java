@@ -30,11 +30,11 @@ public class ColumnInfo {
         return columnTypeInfo;
     }
 
-    public String getColumnFieldName(){
+    public String getColumnFieldName() {
         return WordUtils.uncapitalize(WordUtils.capitalizeFully(column.getName(), '_')).replace("_", "");
     }
 
-    public String getColumnConstantName(){
+    public String getColumnConstantName() {
         return column.getName().toUpperCase();
     }
 

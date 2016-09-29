@@ -30,12 +30,6 @@ public final class ModelInfo {
     private final String baseClassName;
 
     @NotNull
-    private final String modelClassName;
-
-    @NotNull
-    private final String selectClassName;
-
-    @NotNull
     private final ClassName modelClass;
 
     @NotNull
@@ -63,10 +57,9 @@ public final class ModelInfo {
         this.model = model;
         this.schemaInfo = schemaInfo;
         baseClassName = WordUtils.capitalize(model.getId());
-        modelClassName = baseClassName + "Model";
-        selectClassName = baseClassName + "Select";
-        modelClass = ClassName.get(schemaInfo.getModelPackage(), modelClassName);
-        selectClass = ClassName.get(schemaInfo.getSelectPackage(), selectClassName);
+        String selectClassName = baseClassName + "Select";
+        modelClass = ClassName.get(schemaInfo.getModelPackage(), baseClassName + "Model");
+        selectClass = ClassName.get(schemaInfo.getSelectPackage(), baseClassName + "Select");
         shortSelectClass = ClassName.get("", selectClassName);
 
         // info on columns
@@ -83,7 +76,6 @@ public final class ModelInfo {
             ColumnTypeInfo columnTypeInfo = columnInfo.getColumnTypeInfo();
             return new ColumnTypeAndNullable(columnTypeInfo.getColumnType(), columnTypeInfo.isNullable());
         }).distinct().collect(Collectors.toList());
-
     }
 
     public void processSecondPass() throws InvalidSchemaException {
@@ -92,7 +84,7 @@ public final class ModelInfo {
                 stream().
                 filter(ci -> ci.getColumn().getName().equals(primaryKeyColumnName)).
                 findAny();
-        if(! primaryKeyColumnInfo.isPresent()) {
+        if (!primaryKeyColumnInfo.isPresent()) {
             throw new InvalidSchemaException("Unknown column in primary key [" + primaryKeyColumnName + "] in model [" + model.getId() + "]");
         }
         primaryKeyInfo = new PrimaryKeyInfo(model.getPrimaryKey(), primaryKeyColumnInfo.get());
@@ -100,7 +92,7 @@ public final class ModelInfo {
 
         for (ForeignKey foreignKey : model.getForeignKeys()) {
             ModelInfo targetModelInfo = schemaInfo.getModelInfoMap().get(foreignKey.getReferences());
-            if(targetModelInfo == null) {
+            if (targetModelInfo == null) {
                 throw new InvalidSchemaException("Unknown reference [" + foreignKey.getReferences() + "] in model [" + model.getId() + "]");
             }
             String columnName = foreignKey.getColumn();
@@ -108,13 +100,14 @@ public final class ModelInfo {
                     stream().
                     filter(ci -> ci.getColumn().getName().equals(columnName)).
                     findAny();
-            if(! foreignKeyColumnInfo.isPresent()) {
+            if (!foreignKeyColumnInfo.isPresent()) {
                 throw new InvalidSchemaException("Unknown column in foreign key [" + foreignKey.getColumn() + "] in model [" + model.getId() + "]");
             }
             ForeignKeyInfo foreignKeyInfo = new ForeignKeyInfo(foreignKey, this, targetModelInfo, foreignKeyColumnInfo.get());
             foreignKeyInfos.add(foreignKeyInfo);
             targetModelInfo.addForeignKeyed(foreignKeyInfo);
-        };
+        }
+        ;
     }
 
     private void addForeignKeyed(@NotNull ForeignKeyInfo foreignKeyInfo) {
@@ -134,16 +127,6 @@ public final class ModelInfo {
     @NotNull
     public String getBaseClassName() {
         return baseClassName;
-    }
-
-    @NotNull
-    public String getModelClassName() {
-        return modelClassName;
-    }
-
-    @NotNull
-    public String getSelectClassName() {
-        return selectClassName;
     }
 
     @NotNull
@@ -207,7 +190,7 @@ public final class ModelInfo {
         }
 
         @NotNull
-        public Class<? extends Field> getFieldType(){
+        public Class<? extends Field> getFieldType() {
             return ColumnTypeInfo.getFieldType(columnType, nullable);
         }
 

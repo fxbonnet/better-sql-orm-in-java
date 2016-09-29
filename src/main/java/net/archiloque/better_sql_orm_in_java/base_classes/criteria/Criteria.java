@@ -162,7 +162,7 @@ public class Criteria<T> {
     public static NullableStringCriteria stringIsNull(String value) {
         return new NullableStringCriteria(NullableStringCriteria.Type.IS_NOT_NULL.name(), value);
     }
-    
+
     public static class DateCriteria extends Criteria<Date> {
 
         public enum Type {

@@ -49,10 +49,10 @@ public class SimpleModelGenerator {
     }
 
     public void generate() throws IOException {
-        File modelFile = new File(modelBasePath, modelInfo.getModelClassName() + ".java");
+        File modelFile = new File(modelBasePath, modelInfo.getModelClass().simpleName() + ".java");
         logger.info("Generating Model for [" + modelInfo.getModel().getId() + "] at [" + modelFile.getAbsolutePath() + "]");
 
-        TypeSpec.Builder modelTypeSpec = TypeSpec.classBuilder(modelInfo.getModelClassName()).
+        TypeSpec.Builder modelTypeSpec = TypeSpec.classBuilder(modelInfo.getModelClass()).
                 addModifiers(Modifier.PUBLIC, Modifier.FINAL).
                 addJavadoc("This class has been generated, DO NOT EDIT IT MANUALLY !!\n").
                 superclass(net.archiloque.better_sql_orm_in_java.base_classes.Model.class);
@@ -145,7 +145,7 @@ public class SimpleModelGenerator {
         return MethodSpec.methodBuilder("select").
                 addModifiers(Modifier.PUBLIC, Modifier.STATIC).
                 returns(modelInfo.getSelectClass()).
-                addStatement("return new " + modelInfo.getSelectClassName() + "()").
+                addStatement("return new $T()", modelInfo.getSelectClass()).
                 build();
     }
 

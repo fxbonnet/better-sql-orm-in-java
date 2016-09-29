@@ -52,18 +52,18 @@ public final class ColumnTypeInfo {
     }
 
     @NotNull
-    public ClassName getShortClassName(){
-        return ClassName.get("", modelInfo.getModelClassName() + getFieldType().getSimpleName());
+    public ClassName getShortClassName() {
+        return ClassName.get("", modelInfo.getModelClass().simpleName() + getFieldType().getSimpleName());
     }
 
     @NotNull
-    public ClassName getClassName(){
+    public ClassName getClassName() {
         return getClassName(schemaInfo, modelInfo, getFieldType());
     }
 
     @NotNull
-    public static ClassName getClassName(SchemaInfo schemaInfo, ModelInfo modelInfo, Class<? extends Field> fieldType){
-        return ClassName.get(schemaInfo.getModelPackage(), modelInfo.getModelClassName() + fieldType.getSimpleName());
+    public static ClassName getClassName(SchemaInfo schemaInfo, ModelInfo modelInfo, Class<? extends Field> fieldType) {
+        return ClassName.get(schemaInfo.getModelPackage(), modelInfo.getModelClass().simpleName() + fieldType.getSimpleName());
     }
 
     @NotNull

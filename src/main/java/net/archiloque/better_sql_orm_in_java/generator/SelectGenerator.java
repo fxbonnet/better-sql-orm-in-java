@@ -42,7 +42,7 @@ public class SelectGenerator {
     @NotNull
     private final ModelInfo modelInfo;
 
-    public SelectGenerator(@NotNull File basePath, @NotNull File selectBasePath, @NotNull SchemaInfo schemaInfo, @NotNull ModelInfo modelInfo){
+    public SelectGenerator(@NotNull File basePath, @NotNull File selectBasePath, @NotNull SchemaInfo schemaInfo, @NotNull ModelInfo modelInfo) {
         this.basePath = basePath;
         this.selectBasePath = selectBasePath;
         this.schemaInfo = schemaInfo;
@@ -50,7 +50,7 @@ public class SelectGenerator {
     }
 
     @NotNull
-    private MethodSpec generateFetch(){
+    private MethodSpec generateFetch() {
         return MethodSpec.methodBuilder("fetch").
                 addModifiers(Modifier.PUBLIC).
                 addAnnotation(Override.class).
@@ -61,7 +61,7 @@ public class SelectGenerator {
     }
 
     @NotNull
-    private MethodSpec generateFetchFirst(){
+    private MethodSpec generateFetchFirst() {
         return MethodSpec.methodBuilder("fetchFirst").
                 addModifiers(Modifier.PUBLIC).
                 addAnnotation(Override.class).
@@ -72,7 +72,7 @@ public class SelectGenerator {
     }
 
     @NotNull
-    private MethodSpec generateWhere(ClassName realFieldClassName, Class criteriaClass){
+    private MethodSpec generateWhere(ClassName realFieldClassName, Class criteriaClass) {
         return MethodSpec.methodBuilder("where").
                 addParameter(realFieldClassName, "field").
                 addParameter(criteriaClass, "criteria").
@@ -97,7 +97,7 @@ public class SelectGenerator {
                     realFieldClassName,
                     ColumnTypeInfo.getCriteria(columnTypeAndNullable.getColumnType(), columnTypeAndNullable.isNullable())
             ));
-            if(columnTypeAndNullable.isNullable()) {
+            if (columnTypeAndNullable.isNullable()) {
                 result.add(generateWhere(
                         realFieldClassName,
                         ColumnTypeInfo.getCriteria(columnTypeAndNullable.getColumnType(), false)
@@ -109,11 +109,10 @@ public class SelectGenerator {
     }
 
     public void generate() throws IOException {
-        String selectClassName = modelInfo.getSelectClassName();
-        File selectFile = new File(selectBasePath, selectClassName + ".java");
+        File selectFile = new File(selectBasePath, modelInfo.getSelectClass().simpleName() + ".java");
         logger.info("Generating Select for [" + modelInfo.getModel().getId() + "] at [" + selectFile.getAbsolutePath() + "]");
 
-        TypeSpec.Builder classBuilder = TypeSpec.classBuilder(selectClassName).
+        TypeSpec.Builder classBuilder = TypeSpec.classBuilder(modelInfo.getSelectClass()).
                 addModifiers(Modifier.PUBLIC, Modifier.FINAL).
                 addJavadoc("This class has been generated, DO NOT EDIT IT MANUALLY !!\n").
                 superclass(ParameterizedTypeName.get(ClassName.get(Select.class), modelInfo.getModelClass()));

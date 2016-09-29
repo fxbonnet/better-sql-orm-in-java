@@ -51,7 +51,7 @@ public final class SchemaInfo {
             for (ForeignKeyInfo foreignKeyInfo : modelInfo.getForeignKeyInfos()) {
                 ModelInfo[] modelInfos = {foreignKeyInfo.getSourceModel(), foreignKeyInfo.getTargetModel()};
                 Arrays.sort(modelInfos, (o1, o2) -> o1.getModel().getId().compareTo(o2.getModel().getId()));
-                multipleModelsInfos.add(new MultipleModelInfo(modelInfos));
+                multipleModelsInfos.add(new MultipleModelInfo(modelInfos, this));
             }
         }
     }
