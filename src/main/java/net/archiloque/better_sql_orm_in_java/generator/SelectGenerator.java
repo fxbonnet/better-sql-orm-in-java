@@ -10,6 +10,8 @@ import net.archiloque.better_sql_orm_in_java.base_classes.field.Field;
 import net.archiloque.better_sql_orm_in_java.generator.bean.ColumnTypeInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.SchemaInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.ModelInfo;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
 import java.io.File;
@@ -25,30 +27,51 @@ import java.util.stream.Stream;
  */
 public class SelectGenerator {
 
-
+    @NotNull
     private final Logger logger = Logger.getLogger(SelectGenerator.class.getName());
 
+    @NotNull
     private final File basePath;
+
+    @NotNull
     private final File selectBasePath;
+
+    @NotNull
     private final SchemaInfo schemaInfo;
+
+    @NotNull
     private final ModelInfo modelInfo;
 
-    public SelectGenerator(File basePath, File selectBasePath, SchemaInfo schemaInfo, ModelInfo modelInfo){
+    public SelectGenerator(@NotNull File basePath, @NotNull File selectBasePath, @NotNull SchemaInfo schemaInfo, @NotNull ModelInfo modelInfo){
         this.basePath = basePath;
         this.selectBasePath = selectBasePath;
         this.schemaInfo = schemaInfo;
         this.modelInfo = modelInfo;
     }
 
+    @NotNull
     private MethodSpec generateFetch(){
         return MethodSpec.methodBuilder("fetch").
                 addModifiers(Modifier.PUBLIC).
                 addAnnotation(Override.class).
+                addAnnotation(NotNull.class).
                 returns(ParameterizedTypeName.get(ClassName.get(Stream.class), modelInfo.getModelClass())).
                 addStatement("return null").
                 build();
     }
 
+    @NotNull
+    private MethodSpec generateFetchFirst(){
+        return MethodSpec.methodBuilder("fetchFirst").
+                addModifiers(Modifier.PUBLIC).
+                addAnnotation(Override.class).
+                addAnnotation(Nullable.class).
+                returns(modelInfo.getModelClass()).
+                addStatement("return null").
+                build();
+    }
+
+    @NotNull
     private MethodSpec generateWhere(ClassName realFieldClassName, Class criteriaClass){
         return MethodSpec.methodBuilder("where").
                 addParameter(realFieldClassName, "field").
@@ -59,7 +82,7 @@ public class SelectGenerator {
                 build();
     }
 
-
+    @NotNull
     private Stream<MethodSpec> generateWheres() {
         return modelInfo.getColumnsTypes().stream().map(columnTypeAndNullable -> {
             Class<? extends Field> fieldType = columnTypeAndNullable.getFieldType();
@@ -98,6 +121,7 @@ public class SelectGenerator {
         generateWheres().forEach(classBuilder::addMethod);
 
         classBuilder.addMethod(generateFetch());
+        classBuilder.addMethod(generateFetchFirst());
 
         JavaFile.
                 builder(schemaInfo.getSelectPackage(), classBuilder.build()).

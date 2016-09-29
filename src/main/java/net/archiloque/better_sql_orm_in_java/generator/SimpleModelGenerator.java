@@ -6,11 +6,14 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import net.archiloque.better_sql_orm_in_java.base_classes.criteria.Criteria;
 import net.archiloque.better_sql_orm_in_java.base_classes.field.Field;
+import net.archiloque.better_sql_orm_in_java.generator.bean.ColumnInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.ColumnTypeInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.ModelInfo;
 import net.archiloque.better_sql_orm_in_java.generator.bean.SchemaInfo;
 import org.apache.commons.lang3.text.WordUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.lang.model.element.Modifier;
 import java.io.File;
@@ -19,18 +22,26 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
- * Generate models
+ * Generate simple models
  */
-public class ModelGenerator {
+public class SimpleModelGenerator {
 
-    private final Logger logger = Logger.getLogger(ModelGenerator.class.getName());
+    @NotNull
+    private final Logger logger = Logger.getLogger(SimpleModelGenerator.class.getName());
 
+    @NotNull
     private final File basePath;
+
+    @NotNull
     private final File modelBasePath;
+
+    @NotNull
     private final SchemaInfo schemaInfo;
+
+    @NotNull
     private final ModelInfo modelInfo;
 
-    public ModelGenerator(File basePath, File modelBasePath, SchemaInfo schemaInfo, ModelInfo modelInfo) {
+    public SimpleModelGenerator(@NotNull File basePath, @NotNull File modelBasePath, @NotNull SchemaInfo schemaInfo, @NotNull ModelInfo modelInfo) {
         this.basePath = basePath;
         this.modelBasePath = modelBasePath;
         this.schemaInfo = schemaInfo;
@@ -69,27 +80,67 @@ public class ModelGenerator {
                 build().writeTo(basePath);
     }
 
+    @NotNull
     private Stream<MethodSpec> generateForeignKeys() {
         return modelInfo.getForeignKeyInfos().stream().map(foreignKeyInfo -> {
-            String methodName = "fetch" + WordUtils.capitalize(foreignKeyInfo.getForeignKey().getName());
+            // generate something like
+            //   public CustomerModel fetchCustomer() {
+            //      return CustomerModel.select().where(CustomerModel.CUSTOMER_ID, Criteria.integerEquals(customerId)).fetchFirst();
+            // }
+
+            String methodName = "fetch" + WordUtils.capitalize(foreignKeyInfo.getSourceModel().getModel().getId());
+
+            ClassName targetModelClassName = foreignKeyInfo.getTargetModel().getModelClass();
+            ColumnInfo targetPrimaryKeyColumnInfo = foreignKeyInfo.getTargetModel().getPrimaryKeyInfo().getColumnInfo();
+            String statement = "return $T." +
+                    "select().where($T." + targetPrimaryKeyColumnInfo.getColumnConstantName() + "," +
+                    "$T." + ColumnTypeInfo.getCriteriaEquals(targetPrimaryKeyColumnInfo.getColumnTypeInfo().getColumnType()) + "(" +
+                    foreignKeyInfo.getColumnInfo().getColumnFieldName() + ")).fetchFirst()";
+
             return MethodSpec.methodBuilder(methodName).
                     addModifiers(Modifier.PUBLIC).
-                    returns(foreignKeyInfo.getSourceModel().getModelClass()).
-                    addStatement("return null").
+                    addAnnotation(NotNull.class).
+                    returns(targetModelClassName).
+                    addStatement(
+                            statement,
+                            targetModelClassName,
+                            targetModelClassName,
+                            Criteria.class).
                     build();
         });
     }
 
+    @NotNull
     private Stream<MethodSpec> generateForeignedKeys() {
         return modelInfo.getForeignKeyedInfos().stream().map(foreignKeyInfo -> {
+            // generate something like
+            //   public Stream<OrderModel> fetchOrders() {
+            //      return OrderModel.select().where(OrderModel.CUSTOMER_ID, Criteria.integerEquals(customer_id)).fetch();
+            // }
+
             String methodName = "fetch" + WordUtils.capitalize(foreignKeyInfo.getSourceModel().getModel().getId() + "s");
+            ClassName sourceModelClassName = foreignKeyInfo.getSourceModel().getModelClass();
+            ColumnInfo foreignKeyColumnInfo = foreignKeyInfo.getColumnInfo();
+            ColumnInfo localKeyColumnInfo = modelInfo.getPrimaryKeyInfo().getColumnInfo();
+            String statement = "return $T." +
+                    "select().where($T." + foreignKeyColumnInfo.getColumnConstantName() + ", " +
+                    "$T." + ColumnTypeInfo.getCriteriaEquals(foreignKeyColumnInfo.getColumnTypeInfo().getColumnType()) + "(" +
+                    localKeyColumnInfo.getColumnFieldName() + ")).fetch()";
+
             return MethodSpec.methodBuilder(methodName).
                     addModifiers(Modifier.PUBLIC).
-                    returns(ParameterizedTypeName.get(ClassName.get(Stream.class), foreignKeyInfo.getSourceModel().getModelClass())).
-                    addStatement("return null").
+                    addAnnotation(NotNull.class).
+                    returns(ParameterizedTypeName.get(ClassName.get(Stream.class), sourceModelClassName)).
+                    addStatement(
+                            statement,
+                            sourceModelClassName,
+                            sourceModelClassName,
+                            Criteria.class).
                     build();
         });
     }
+
+    @NotNull
     private MethodSpec generateSelect() {
         return MethodSpec.methodBuilder("select").
                 addModifiers(Modifier.PUBLIC, Modifier.STATIC).
@@ -98,19 +149,20 @@ public class ModelGenerator {
                 build();
     }
 
+    @NotNull
     private Stream<FieldSpec> generateColumnsForModel() {
         return modelInfo.getColumnInfos().stream().map(columnInfo -> {
             ColumnTypeInfo columnTypeInfo = columnInfo.getColumnTypeInfo();
             String columnName = columnInfo.getColumn().getName();
-            String fieldName = columnName.toUpperCase();
             return FieldSpec.
-                    builder(columnTypeInfo.getShortClassName(), fieldName).
+                    builder(columnTypeInfo.getShortClassName(), columnInfo.getColumnConstantName()).
                     addModifiers(Modifier.PUBLIC, Modifier.FINAL, Modifier.STATIC).
                     initializer("new " + columnTypeInfo.getClassName().simpleName() + "($S)", columnName).
                     build();
         });
     }
 
+    @NotNull
     private Stream<MethodSpec> generateGettersForModel() {
         return modelInfo.getColumnInfos().stream().map(columnInfo -> {
             Class valueClass = ColumnTypeInfo.getValueClass(columnInfo.getColumnTypeInfo().getColumnType());
@@ -124,6 +176,7 @@ public class ModelGenerator {
         });
     }
 
+    @NotNull
     private Stream<FieldSpec> generateFieldsForModel() {
         return modelInfo.getColumnInfos().stream().map(columnInfo -> {
             ColumnTypeInfo columnTypeInfo = columnInfo.getColumnTypeInfo();
@@ -135,6 +188,7 @@ public class ModelGenerator {
         });
     }
 
+    @NotNull
     private Stream<TypeSpec> generateColumnTypes() {
         return modelInfo.getColumnsTypes().stream().map(columnTypeAndNullable -> {
             Class<? extends Field> fieldType = columnTypeAndNullable.getFieldType();
