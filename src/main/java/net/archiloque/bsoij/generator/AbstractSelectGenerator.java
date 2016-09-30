@@ -5,6 +5,7 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import net.archiloque.bsoij.base_classes.Order;
 import net.archiloque.bsoij.base_classes.Select;
 import net.archiloque.bsoij.base_classes.field.Field;
 import net.archiloque.bsoij.generator.bean.AbstractModelInfo;
@@ -99,6 +100,24 @@ public abstract class AbstractSelectGenerator {
                 returns(returnModelInfo.getShortSelectClass()).
                 addStatement("return this").
                 build();
+    }
+
+    @NotNull
+    Stream<MethodSpec> generateOrders(SimpleModelInfo modelInfo, AbstractModelInfo returnModelInfo) {
+        return modelInfo.getColumnsTypes().stream().map(columnTypeAndNullable -> {
+            Class<? extends Field> fieldType = columnTypeAndNullable.getFieldType();
+            ClassName fieldClassName = ColumnTypeInfo.getClassName(schemaInfo, modelInfo, fieldType);
+            ClassName realFieldClassName = ClassName.get(schemaInfo.getModelPackage(), modelInfo.getModelClass().simpleName(), fieldClassName.simpleName());
+
+            return MethodSpec.methodBuilder("order").
+                    addParameter(realFieldClassName, "field").
+                    addParameter(Order.class, "order").
+                    addModifiers(Modifier.PUBLIC).
+                    addAnnotation(NotNull.class).
+                    returns(returnModelInfo.getShortSelectClass()).
+                    addStatement("return this").
+                    build();
+        });
     }
 
     @NotNull

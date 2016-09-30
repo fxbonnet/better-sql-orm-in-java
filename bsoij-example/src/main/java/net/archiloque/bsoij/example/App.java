@@ -1,6 +1,7 @@
 package net.archiloque.bsoij.example;
 
-import net.archiloque.bsoij.base_classes.criteria.Criteria;
+import net.archiloque.bsoij.base_classes.Criteria;
+import net.archiloque.bsoij.base_classes.Order;
 import net.archiloque.bsoij.example.model.CustomerModel;
 import net.archiloque.bsoij.example.model.CustomerOrderModel;
 import net.archiloque.bsoij.example.model.OrderModel;
@@ -34,8 +35,12 @@ public class App
                         Criteria.dateIsNotNull() // the criteria is available because the column is nullable
                 );
 
+        // order by available fields
+        CustomerOrderSelect orderedCustomerOrderSelectWithDeliveryDate = customerOrderSelectWithDeliveryDate.
+                order(OrderModel.DATE, Order.ASC);
+
         // fetch the data
-        Stream<CustomerOrderModel> customerOrderModelStream = customerOrderSelectWithDeliveryDate.fetch();
+        Stream<CustomerOrderModel> customerOrderModelStream = orderedCustomerOrderSelectWithDeliveryDate.fetch();
         customerOrderModelStream.forEach(customerOrderModel -> {
             // the join result holds links to individual models
             CustomerModel customer = customerOrderModel.getCustomer();

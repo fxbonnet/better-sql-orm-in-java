@@ -6,7 +6,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import net.archiloque.bsoij.base_classes.criteria.Criteria;
+import net.archiloque.bsoij.base_classes.Criteria;
 import net.archiloque.bsoij.base_classes.field.Field;
 import net.archiloque.bsoij.generator.bean.ColumnInfo;
 import net.archiloque.bsoij.generator.bean.ColumnTypeInfo;

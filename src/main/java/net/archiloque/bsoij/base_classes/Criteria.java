@@ -1,11 +1,11 @@
-package net.archiloque.bsoij.base_classes.criteria;
+package net.archiloque.bsoij.base_classes;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 
 /**
- *
+ * All kinds of criteria.
  */
 public class Criteria<T> {
 

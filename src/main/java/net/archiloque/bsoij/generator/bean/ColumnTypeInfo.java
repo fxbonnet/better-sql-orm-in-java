@@ -1,7 +1,7 @@
 package net.archiloque.bsoij.generator.bean;
 
 import com.squareup.javapoet.ClassName;
-import net.archiloque.bsoij.base_classes.criteria.Criteria;
+import net.archiloque.bsoij.base_classes.Criteria;
 import net.archiloque.bsoij.base_classes.field.DateField;
 import net.archiloque.bsoij.base_classes.field.Field;
 import net.archiloque.bsoij.base_classes.field.IntegerField;

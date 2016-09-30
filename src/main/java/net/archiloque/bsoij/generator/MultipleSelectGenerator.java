@@ -32,6 +32,7 @@ public class MultipleSelectGenerator extends AbstractSelectGenerator {
         classBuilder.addMethod(generateFetchFirst(modelInfo));
         Arrays.stream(modelInfo.getModelInfos()).forEach(simpleModelInfo -> {
             generateWheres(simpleModelInfo, modelInfo).forEach(classBuilder::addMethod);
+            generateOrders(simpleModelInfo, modelInfo).forEach(classBuilder::addMethod);
         });
         writeClass(classBuilder);
     }

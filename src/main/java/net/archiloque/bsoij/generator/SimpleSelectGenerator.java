@@ -58,6 +58,7 @@ public class SimpleSelectGenerator extends AbstractSelectGenerator {
     public void generate() throws IOException {
         TypeSpec.Builder classBuilder = initiatilizeClass(modelInfo);
         generateWheres(modelInfo, modelInfo).forEach(classBuilder::addMethod);
+        generateOrders(modelInfo, modelInfo).forEach(classBuilder::addMethod);
         generateJoins().forEach(classBuilder::addMethod);
         classBuilder.addMethod(generateFetch(modelInfo));
         classBuilder.addMethod(generateFetchFirst(modelInfo));
