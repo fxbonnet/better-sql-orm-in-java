@@ -18,12 +18,12 @@ public class App
     public static void main( String[] args )
     {
 
-
         CustomerSelect customerSelect = CustomerModel.
                 select().
                 where(CustomerModel.NAME, Criteria.stringEquals("Roger"));
         CustomerOrderSelect customerOrderSelect = customerSelect.joinOrders();
-        CustomerOrderSelect customerOrderSelectWithDeliveryDate = customerOrderSelect.where(OrderModel.DELIVERY_DATE, Criteria.dateIsNotNull());
+        CustomerOrderSelect customerOrderSelectWithDeliveryDate = customerOrderSelect.
+                where(OrderModel.DELIVERY_DATE, Criteria.dateIsNotNull());
         Stream<CustomerOrderModel> customerOrderModelStream = customerOrderSelectWithDeliveryDate.fetch();
         customerOrderModelStream.forEach(customerOrderModel -> {
             CustomerModel customer = customerOrderModel.getCustomer();
