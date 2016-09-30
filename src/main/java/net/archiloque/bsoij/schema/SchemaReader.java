@@ -1,34 +1,36 @@
-package net.archiloque.bsoij.generator;
+package net.archiloque.bsoij.schema;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
-import net.archiloque.bsoij.schema.SchemaReader;
 import net.archiloque.bsoij.schema.bean.Column;
 import net.archiloque.bsoij.schema.bean.ForeignKey;
 import net.archiloque.bsoij.schema.bean.Model;
 import net.archiloque.bsoij.schema.bean.PrimaryKey;
 import net.archiloque.bsoij.schema.bean.Schema;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
- * Entry point to generate the code.
+ * Read the schema configuration file
  */
-public class Main {
+public class SchemaReader {
 
-    private Main(String schemaFilePath, String generationPath) throws IOException, InvalidSchemaException {
-        Schema schema = new SchemaReader(schemaFilePath).read();
-        CodeGenerator codeGenerator = new CodeGenerator(new File(generationPath), schema);
-        codeGenerator.initialize();
-        codeGenerator.generate();
+    private final @NotNull String schemaFilePath;
+
+    public SchemaReader(String schemaFilePath) {
+        this.schemaFilePath = schemaFilePath;
     }
 
-    public static void main(String[] args) throws Exception {
-        if(args.length !=2 ) {
-            throw new RuntimeException("2 parameters : path to XML schema and path where to generate the code, currently we have [" + String.join(",", args) + "]");
-        }
-        new Main(args[0], args[1]);
+    /**
+     * Read the schema
+     * @return
+     */
+    @NotNull
+    public Schema read(){
+        XStream xstream = createXStream();
+        File schemaFile = new File(schemaFilePath);
+        return (Schema) xstream.fromXML(schemaFile);
     }
 
     private XStream createXStream() {
@@ -41,5 +43,4 @@ public class Main {
         xstream.alias("schema", Schema.class);
         return xstream;
     }
-
 }

@@ -24,6 +24,9 @@ public class Model {
     @NotNull
     private PrimaryKey primaryKey;
 
+    @NotNull
+    private String tableName;
+
     @XStreamImplicit
     private List<ForeignKey> foreignKeys = new ArrayList<>();
 
@@ -77,5 +80,14 @@ public class Model {
         return "Model{" +
                 "id='" + id + '\'' +
                 '}';
+    }
+
+    @NotNull
+    public String getTableName() {
+        return tableName;
+    }
+
+    public void setTableName(@NotNull String tableName) {
+        this.tableName = tableName;
     }
 }

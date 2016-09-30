@@ -89,3 +89,10 @@ customerOrderModelStream.forEach(customerOrderModel -> {
   CustomerModel customerModel = order.fetchCustomer();
 });
 ```
+
+## Limitations
+
+- Only a POC, don't use for real use
+- Only simple filtering
+- Only work with h2
+- Only simple joins
