@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetPackage="net.archiloque.bsoij.test">
+    <model id="customer" tableName="customer">
+        <primaryKey column="customer_id"/>
+        <column name="customer_id" type="Integer" nullable="false"/>
+        <column name="name" type="String" nullable="false"/>
+        <column name="email" type="String" nullable="true"/>
+        <column name="birth" type="Date" nullable="true"/>
+    </model>
+    <model id="order" tableName="order">
+        <primaryKey column="order_id"/>
+        <column name="order_id" type="Integer" nullable="false"/>
+        <column name="date" type="Date" nullable="false"/>
+        <column name="delivery_date" type="Date" nullable="true"/>
+        <column name="amount" type="Integer" nullable="false"/>
+        <column name="customer_id" type="Integer" nullable="false"/>
+        <foreignKey name="customer" reverseName="orders" column="customer_id" references="customer"/>
+    </model>
+</schema>
