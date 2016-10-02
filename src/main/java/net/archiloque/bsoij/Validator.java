@@ -16,6 +16,8 @@ import java.util.Map;
  */
 public class Validator {
 
+    private static final String COLUMN_NAME_COLUMN_NAME = "COLUMN_NAME";
+
     @NotNull
     private final Engine engine;
 
@@ -25,7 +27,7 @@ public class Validator {
     @NotNull
     private final Connection connection;
 
-    public Validator(@NotNull Engine engine, Schema schema) {
+    public Validator(@NotNull Engine engine, @NotNull Schema schema) {
         this.engine = engine;
         this.schema = schema;
         connection = engine.getConnection();
@@ -48,7 +50,7 @@ public class Validator {
             // validate columns
             try(ResultSet columns = connection.getMetaData().getColumns(null, null, tableName, null)) {
                 while(columns.next()) {
-                    String columnName = columns.getString("COLUMN_NAME");
+                    String columnName = columns.getString(COLUMN_NAME_COLUMN_NAME);
                     if(notFoundColumns.containsKey(columnName)) {
                         notFoundColumns.remove(columnName);
                     } else {
