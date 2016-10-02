@@ -1,5 +1,7 @@
 package net.archiloque.bsoij;
 
+import net.archiloque.bsoij.db_specific.DbTranslator;
+import net.archiloque.bsoij.db_specific.H2Translator;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -25,11 +27,14 @@ public class Engine {
 
     private Connection connection;
 
+    private final DbTranslator dbTranslator;
+
     public Engine(@NotNull String driverClass, @NotNull String connectionUrl, @NotNull String user, @NotNull String password) {
         this.driverClass = driverClass;
         this.connectionUrl = connectionUrl;
         this.user = user;
         this.password = password;
+        dbTranslator = new H2Translator();
     }
 
     public void connect() throws ClassNotFoundException, SQLException {
@@ -53,4 +58,7 @@ public class Engine {
         return connection;
     }
 
+    public DbTranslator getDbTranslator() {
+        return dbTranslator;
+    }
 }
