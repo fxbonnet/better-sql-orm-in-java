@@ -2,25 +2,25 @@ WORK IN PROGRESS, PLEASE COME BACK LATER
 
 # Better SQL in Java
 
-WARNING : this project is only a toy POC, don't use it for real use cases.
+WARNING: this project is only a toy POC, don't use it for real use cases.
 
 ## The question
 
-I'm not happy with current solutions for SQL ORM in Java because they all are bad in a way or another :
+I'm not happy with current solutions for SQL ORM in Java because they all are bad in a way or another:
 - Hibernate is a half-assed solution
-- JPA took some parts of it but missed some crucial ones (aka « the Java way™ ») so it's mostly unusable as it
+- JPA took some parts of it but missed some crucial ones (aka « the Java way™ ») so it's mostly unusable as is
 - They are stuck in Java 3 or in Java 6
 - Bad magic everywhere including horrid runtime code generation
 - They are hard to debug
 - They want to make SQL look like Java classes, and the impedance strikes back
-- The error management is a mess : you got NullPointerExceptions or ClassCastExceptions because when you forgot a "mandatory" annotation 
+- The error management is a mess: you got NullPointerExceptions or ClassCastExceptions whenever you forgot a "mandatory" annotation 
 - Lazy loading + relations = total hell
 
-Is it a limitation of Java, or can we do better ?
+Is it a limitation of Java, or can we do better?
 
 ## What I want
 
-What I want is rely on Java paradigm :
+What I want is rely on Java paradigm:
 
 - As much type safety as possible
 - As much compile-time validation as possible
@@ -28,7 +28,7 @@ What I want is rely on Java paradigm :
 - No dark magic at runtime
 
 Plus : 
-- Don't try to make SQL access looks like Java
+- Don't try to make SQL access look like Java
 - Clean API
 - Plain code
 
@@ -38,7 +38,7 @@ Describe your SQL model in XML and use this XML to generate Java code.
 
 The Java code generation should enable to fine tune the query API for maximum safety.
 
-With this grand plan, see how good is the API can be.
+With this grand plan, see how good the API can be.
 
 ## Example
 
