@@ -8,7 +8,7 @@ WARNING : this project is only a toy POC, don't use it for real use cases.
 
 I'm not happy with current solutions for SQL ORM in Java because they all are bad in a way or another :
 - Hibernate is a half-assed solution
-- JPA took some parts of it but missed some crucial ones (aka « the Java way™ », so it's mostly unusable as it
+- JPA took some parts of it but missed some crucial ones (aka « the Java way™ ») so it's mostly unusable as it
 - They are stuck in Java 3 or in Java 6
 - Bad magic everywhere including horrid runtime code generation
 - They are hard to debug
