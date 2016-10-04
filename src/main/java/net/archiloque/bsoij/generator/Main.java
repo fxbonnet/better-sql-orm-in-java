@@ -1,12 +1,6 @@
 package net.archiloque.bsoij.generator;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.StaxDriver;
 import net.archiloque.bsoij.schema.SchemaReader;
-import net.archiloque.bsoij.schema.bean.Column;
-import net.archiloque.bsoij.schema.bean.ForeignKey;
-import net.archiloque.bsoij.schema.bean.Model;
-import net.archiloque.bsoij.schema.bean.PrimaryKey;
 import net.archiloque.bsoij.schema.bean.Schema;
 
 import java.io.File;
@@ -29,17 +23,6 @@ public class Main {
             throw new RuntimeException("2 parameters : path to XML schema and path where to generate the code, currently we have [" + String.join(",", args) + "]");
         }
         new Main(args[0], args[1]);
-    }
-
-    private XStream createXStream() {
-        XStream xstream = new XStream(new StaxDriver());
-        xstream.processAnnotations(Column.class);
-        xstream.processAnnotations(ForeignKey.class);
-        xstream.processAnnotations(Model.class);
-        xstream.processAnnotations(PrimaryKey.class);
-        xstream.processAnnotations(Schema.class);
-        xstream.alias("schema", Schema.class);
-        return xstream;
     }
 
 }
