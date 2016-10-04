@@ -112,7 +112,7 @@ try (Stream<CustomerOrderModel> customerOrderModelStream = orderedCustomerOrderS
 
 - Clone the project
 - Build the root project `mvn clean install`
-- Build the example project in the `bsoij-example` directory : `mvn clean install`
+- Build the example project in the `bsoij-example` directory : `mvn clean install` and play with it
 
 ## Limitations
 
