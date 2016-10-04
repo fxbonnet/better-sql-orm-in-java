@@ -1,5 +1,7 @@
 package net.archiloque.bsoij.example;
 
+import net.archiloque.bsoij.Engine;
+import net.archiloque.bsoij.EngineSingleton;
 import net.archiloque.bsoij.base_classes.Criteria;
 import net.archiloque.bsoij.base_classes.Sort;
 import net.archiloque.bsoij.example.model.CustomerModel;
@@ -14,7 +16,10 @@ import java.util.stream.Stream;
  * Hello world!
  */
 public class App {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        Engine engine = new Engine("org.h2.Driver", "jdbc:h2:mem:~/bsoij", "bsoij", "");
+        EngineSingleton.setEngine(engine);
+        engine.connect();
 
         CustomerSelect customerSelect = CustomerModel.
                 select().

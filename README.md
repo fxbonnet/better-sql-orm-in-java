@@ -7,11 +7,13 @@ WARNING : this project is only a toy POC, don't use it for real use cases.
 ## The question
 
 I'm not happy with current solutions for SQL ORM in Java because they all are bad in a way or another :
-- Stuck in Java 3 or in Java 6
+- Hibernate is a half-assed solution
+- JPA took some parts of it but missed some crucial ones (aka « the Java way™ », so it's mostly unusable as it
+- They are stuck in Java 3 or in Java 6
 - Bad magic everywhere including horrid runtime code generation
-- Hard to debug
-- Want to make SQL look like Java classes, and the impedance strikes back
-- Error management is a mess : you got NullPointerExceptions or ClassCastExceptions because when you forgot a "mandatory" annotation 
+- They are hard to debug
+- They want to make SQL look like Java classes, and the impedance strikes back
+- The error management is a mess : you got NullPointerExceptions or ClassCastExceptions because when you forgot a "mandatory" annotation 
 - Lazy loading + relations = total hell
 
 Is it a limitation of Java, or can we do better ?
@@ -26,7 +28,7 @@ What I want is rely on Java paradigm :
 - No dark magic at runtime
 
 Plus : 
-- Don't try to make SQL access looks like Java.
+- Don't try to make SQL access looks like Java
 - Clean API
 - Plain code
 
@@ -100,13 +102,25 @@ try (Stream<CustomerOrderModel> customerOrderModelStream = orderedCustomerOrderS
  }
 ```
 
+# Requirements
+
+- Java 8
+- Maven to build
+- H2
+
+## Test it
+
+- Clone the project
+- Build the root project `mvn clean install`
+- Build the example project in the `bsoij-example` directory : `mvn clean install`
+
 ## Limitations
 
 Mostly everything that is not in the example 😅
 
 - Only a POC, don't use for real use
 - Only simple filtering
-- Only work with h2
+- Only work with H2
 - Only simple joins
 - Only long primary keys
 - Only simple types
