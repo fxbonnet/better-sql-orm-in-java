@@ -2,6 +2,8 @@ package net.archiloque.bsoij.generator;
 
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
+import net.archiloque.bsoij.base_classes.select.SimpleSelect;
+import net.archiloque.bsoij.generator.bean.ForeignKeyInfo;
 import net.archiloque.bsoij.generator.bean.MultipleModelInfo;
 import net.archiloque.bsoij.generator.bean.SchemaInfo;
 import net.archiloque.bsoij.generator.bean.SimpleModelInfo;
@@ -14,7 +16,7 @@ import java.io.IOException;
 import java.util.stream.Stream;
 
 /**
- * Generate select
+ * create select
  */
 public class SimpleSelectGenerator extends AbstractSelectGenerator {
 
@@ -31,37 +33,41 @@ public class SimpleSelectGenerator extends AbstractSelectGenerator {
     }
 
     @NotNull
-    private MethodSpec generateJoin(MultipleModelInfo multipleModelInfo, String name) {
+    private MethodSpec createJoin(MultipleModelInfo multipleModelInfo, String name) {
         return MethodSpec.methodBuilder("join" + WordUtils.capitalize(name)).
                 addModifiers(Modifier.PUBLIC).
                 addAnnotation(NotNull.class).
                 returns(multipleModelInfo.getSelectClass()).
-                addStatement("return null").
+                addStatement("return new $T(this)", multipleModelInfo.getSelectClass()).
                 build();
     }
 
     @NotNull
-    private Stream<MethodSpec> generateJoins() {
+    private Stream<MethodSpec> createJoins() {
         return Stream.concat(
                 modelInfo.getForeignKeyedInfos().stream().map(foreignKeyInfo -> {
                     SimpleModelInfo[] modelList = new SimpleModelInfo[]{modelInfo, foreignKeyInfo.getSourceModel()};
                     MultipleModelInfo multipleModelInfo = schemaInfo.getMultipleModelInfo(modelList);
-                    return generateJoin(multipleModelInfo, foreignKeyInfo.getForeignKey().getReverseName());
+                    return createJoin(multipleModelInfo, foreignKeyInfo.getForeignKey().getReverseName());
                 }), modelInfo.getForeignKeyInfos().stream().map(foreignKeyInfo -> {
                     SimpleModelInfo[] modelList = new SimpleModelInfo[]{modelInfo, foreignKeyInfo.getTargetModel()};
                     MultipleModelInfo multipleModelInfo = schemaInfo.getMultipleModelInfo(modelList);
-                    return generateJoin(multipleModelInfo, foreignKeyInfo.getForeignKey().getName());
+                    return createJoin(multipleModelInfo, foreignKeyInfo.getForeignKey().getName());
                 }));
     }
 
 
-    public void generate() throws IOException {
-        TypeSpec.Builder classBuilder = initiatilizeClass(modelInfo);
-        generateWheres(modelInfo, modelInfo).forEach(classBuilder::addMethod);
-        generateOrders(modelInfo, modelInfo).forEach(classBuilder::addMethod);
-        generateJoins().forEach(classBuilder::addMethod);
-        classBuilder.addMethod(generateFetch(modelInfo));
-        classBuilder.addMethod(generateFetchFirst(modelInfo));
+    public void create() throws IOException {
+        TypeSpec.Builder classBuilder = initiatilizeClass(
+                SimpleSelect.class,
+                modelInfo,
+                new SimpleModelInfo[]{modelInfo},
+                new ForeignKeyInfo[]{});
+        createWheres(modelInfo, modelInfo).forEach(classBuilder::addMethod);
+        createOrdersMethods(modelInfo, modelInfo).forEach(classBuilder::addMethod);
+        createJoins().forEach(classBuilder::addMethod);
+        classBuilder.addMethod(createFetch(modelInfo));
+        classBuilder.addMethod(createFetchFirst(modelInfo));
         writeClass(classBuilder);
     }
 

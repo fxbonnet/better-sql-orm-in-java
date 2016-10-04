@@ -2,8 +2,7 @@ package net.archiloque.bsoij.schema.bean;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import com.thoughtworks.xstream.annotations.XStreamConverter;
-import com.thoughtworks.xstream.converters.enums.EnumToStringConverter;
+import net.archiloque.bsoij.base_classes.ColumnType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -52,8 +51,4 @@ public class Column {
 
     }
 
-    @XStreamConverter(EnumToStringConverter.class)
-    public enum ColumnType {
-        String, Date, Integer
-    }
 }

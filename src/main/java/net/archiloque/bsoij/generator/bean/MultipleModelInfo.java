@@ -23,17 +23,24 @@ public class MultipleModelInfo extends AbstractModelInfo {
     @NotNull
     private final ClassName shortSelectClass;
 
-    public MultipleModelInfo(@NotNull SimpleModelInfo[] modelInfos, @NotNull SchemaInfo schemaInfo) {
+    @NotNull
+    private final ForeignKeyInfo[] foreignKeyInfos;
+
+    public MultipleModelInfo(
+            @NotNull SimpleModelInfo[] modelInfos,
+            @NotNull SchemaInfo schemaInfo,
+            @NotNull ForeignKeyInfo[] foreignKeyInfos) {
         this.modelInfos = modelInfos;
 
         String baseClass = Arrays.
                 stream(modelInfos).
                 map(SimpleModelInfo::getBaseClassName).
                 collect(Collectors.joining(""));
-        modelClass = ClassName.get(schemaInfo.getModelPackage(), baseClass + "Model" );
+        modelClass = ClassName.get(schemaInfo.getModelPackage(), baseClass + "Model");
         String selectClassName = baseClass + "Select";
         selectClass = ClassName.get(schemaInfo.getSelectPackage(), selectClassName);
         shortSelectClass = ClassName.get("", selectClassName);
+        this.foreignKeyInfos = foreignKeyInfos;
     }
 
     @NotNull
@@ -57,5 +64,10 @@ public class MultipleModelInfo extends AbstractModelInfo {
     @NotNull
     public ClassName getShortSelectClass() {
         return shortSelectClass;
+    }
+
+    @NotNull
+    public ForeignKeyInfo[] getForeignKeyInfos() {
+        return foreignKeyInfos;
     }
 }

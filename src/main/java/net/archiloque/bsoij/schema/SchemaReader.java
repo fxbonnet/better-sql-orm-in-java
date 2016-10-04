@@ -16,7 +16,9 @@ import java.io.File;
  */
 public class SchemaReader {
 
-    private final @NotNull String schemaFilePath;
+    private final
+    @NotNull
+    String schemaFilePath;
 
     public SchemaReader(String schemaFilePath) {
         this.schemaFilePath = schemaFilePath;
@@ -24,10 +26,11 @@ public class SchemaReader {
 
     /**
      * Read the schema
+     *
      * @return
      */
     @NotNull
-    public Schema read(){
+    public Schema read() {
         XStream xstream = createXStream();
         File schemaFile = new File(schemaFilePath);
         return (Schema) xstream.fromXML(schemaFile);

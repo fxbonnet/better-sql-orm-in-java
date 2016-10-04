@@ -1,9 +1,9 @@
 package net.archiloque.bsoij.generator.bean;
 
 import com.squareup.javapoet.ClassName;
+import net.archiloque.bsoij.base_classes.ColumnType;
 import net.archiloque.bsoij.base_classes.field.Field;
 import net.archiloque.bsoij.generator.InvalidSchemaException;
-import net.archiloque.bsoij.schema.bean.Column;
 import net.archiloque.bsoij.schema.bean.ForeignKey;
 import net.archiloque.bsoij.schema.bean.Model;
 import org.apache.commons.lang3.text.WordUtils;
@@ -186,17 +186,17 @@ public final class SimpleModelInfo extends AbstractModelInfo implements Comparab
     public final static class ColumnTypeAndNullable {
 
         @NotNull
-        private final Column.ColumnType columnType;
+        private final ColumnType columnType;
 
         private final boolean nullable;
 
-        private ColumnTypeAndNullable(@NotNull Column.ColumnType columnType, boolean nullable) {
+        private ColumnTypeAndNullable(@NotNull ColumnType columnType, boolean nullable) {
             this.columnType = columnType;
             this.nullable = nullable;
         }
 
         @NotNull
-        public Column.ColumnType getColumnType() {
+        public ColumnType getColumnType() {
             return columnType;
         }
 

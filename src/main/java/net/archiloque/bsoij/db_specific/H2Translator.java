@@ -1,17 +1,16 @@
 package net.archiloque.bsoij.db_specific;
 
-import net.archiloque.bsoij.schema.bean.Column;
+import net.archiloque.bsoij.base_classes.ColumnType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- *
  * @TODO recode
  */
 public class H2Translator implements DbTranslator {
 
     @Override
     @NotNull
-    public String escapeTableName(String tableName){
+    public String escapeTableName(String tableName) {
         return "\"" + tableName + "\"";
     }
 
@@ -23,7 +22,7 @@ public class H2Translator implements DbTranslator {
 
     @Override
     @NotNull
-    public String getColumnType(Column.ColumnType columnType) {
+    public String getColumnType(ColumnType columnType) {
         switch (columnType) {
             case String:
                 return "VARCHAR";
@@ -31,6 +30,8 @@ public class H2Translator implements DbTranslator {
                 return "DATE";
             case Integer:
                 return "INT";
+            case Long:
+                return "BIGINT";
             default:
                 throw new RuntimeException("Unknown type [" + columnType + "]");
         }

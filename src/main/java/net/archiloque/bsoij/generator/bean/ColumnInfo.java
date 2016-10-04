@@ -38,5 +38,14 @@ public class ColumnInfo {
         return column.getName().toUpperCase();
     }
 
+    @NotNull
+    public String getGetterName() {
+        return "get" + WordUtils.capitalize(getColumnFieldName());
+    }
+
+    @NotNull
+    public String getSetterName() {
+        return "set" + WordUtils.capitalize(getColumnFieldName());
+    }
 
 }

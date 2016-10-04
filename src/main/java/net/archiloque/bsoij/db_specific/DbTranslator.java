@@ -1,6 +1,6 @@
 package net.archiloque.bsoij.db_specific;
 
-import net.archiloque.bsoij.schema.bean.Column;
+import net.archiloque.bsoij.base_classes.ColumnType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,6 +15,6 @@ public interface DbTranslator {
     String escapeColumnName(@NotNull String columnName);
 
     @NotNull
-    String getColumnType(@NotNull Column.ColumnType columnType);
+    String getColumnType(@NotNull ColumnType columnType);
 
 }

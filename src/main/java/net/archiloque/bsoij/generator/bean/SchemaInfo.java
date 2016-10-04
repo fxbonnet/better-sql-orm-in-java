@@ -52,7 +52,7 @@ public final class SchemaInfo {
             for (ForeignKeyInfo foreignKeyInfo : modelInfo.getForeignKeyInfos()) {
                 SimpleModelInfo[] modelInfos = {foreignKeyInfo.getSourceModel(), foreignKeyInfo.getTargetModel()};
                 Arrays.sort(modelInfos);
-                multipleModelsInfos.add(new MultipleModelInfo(modelInfos, this));
+                multipleModelsInfos.add(new MultipleModelInfo(modelInfos, this, new ForeignKeyInfo[]{foreignKeyInfo}));
             }
         }
     }
@@ -63,12 +63,14 @@ public final class SchemaInfo {
                 stream().
                 filter(multipleModelInfo -> Arrays.equals(multipleModelInfo.getModelInfos(), modelInfos)).
                 findAny();
-        if(! any.isPresent()) {
+        if (!any.isPresent()) {
             throw new RuntimeException("Multiple model info not found for " + Arrays.toString(modelInfos));
         } else {
             return any.get();
         }
-    };
+    }
+
+    ;
 
     @NotNull
     public List<MultipleModelInfo> getMultipleModelsInfos() {

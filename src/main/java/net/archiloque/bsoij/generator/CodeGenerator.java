@@ -61,20 +61,30 @@ public class CodeGenerator {
     private void generateModels() throws IOException {
         File modelBasePath = new File(basePath, "model");
         for (SimpleModelInfo modelInfo : schemaInfo.getModelInfoMap().values()) {
-            new SimpleModelGenerator(basePath, modelBasePath, schemaInfo, modelInfo).generate();
+            new SimpleModelGenerator(basePath, modelBasePath, schemaInfo, modelInfo).create();
         }
         for (MultipleModelInfo multipleModelInfo : schemaInfo.getMultipleModelsInfos()) {
-            new MultipleModelGenerator(basePath, modelBasePath, schemaInfo, multipleModelInfo).generate();
+            new MultipleModelGenerator(basePath, modelBasePath, schemaInfo, multipleModelInfo).create();
         }
     }
 
     private void generateSelects() throws IOException {
         File selectBasePath = new File(basePath, "select");
         for (SimpleModelInfo modelInfo : schemaInfo.getModelInfoMap().values()) {
-            new SimpleSelectGenerator(basePath, selectBasePath, schemaInfo, modelInfo).generate();
+            new SimpleSelectGenerator(
+                    basePath,
+                    selectBasePath,
+                    schemaInfo,
+                    modelInfo).
+                    create();
         }
         for (MultipleModelInfo multipleModelInfo : schemaInfo.getMultipleModelsInfos()) {
-            new MultipleSelectGenerator(basePath, selectBasePath, schemaInfo, multipleModelInfo).generate();
+            new MultipleSelectGenerator(
+                    basePath,
+                    selectBasePath,
+                    schemaInfo,
+                    multipleModelInfo).
+                    create();
         }
 
     }

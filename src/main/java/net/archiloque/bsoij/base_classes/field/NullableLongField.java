@@ -9,13 +9,13 @@ import java.util.function.Function;
 /**
  *
  */
-public abstract class NullableIntegerField<M extends SimpleModel> extends IntegerField<M> {
+public abstract class NullableLongField<M extends SimpleModel> extends LongField<M> {
 
-    public NullableIntegerField(
+    public NullableLongField(
             @NotNull String tableName,
             @NotNull String columnName,
-            @NotNull Function<M, Integer> getter,
-            @NotNull BiConsumer<M, Integer> setter) {
+            @NotNull Function<M, Long> getter,
+            @NotNull BiConsumer<M, Long> setter) {
         super(tableName, columnName, getter, setter);
     }
 }

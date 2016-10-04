@@ -25,7 +25,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        if(args.length !=2 ) {
+        if (args.length != 2) {
             throw new RuntimeException("2 parameters : path to XML schema and path where to generate the code, currently we have [" + String.join(",", args) + "]");
         }
         new Main(args[0], args[1]);

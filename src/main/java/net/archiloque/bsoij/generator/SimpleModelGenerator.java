@@ -1,28 +1,38 @@
 package net.archiloque.bsoij.generator;
 
+import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import net.archiloque.bsoij.base_classes.ColumnType;
 import net.archiloque.bsoij.base_classes.Criteria;
 import net.archiloque.bsoij.base_classes.field.Field;
+import net.archiloque.bsoij.base_classes.model.SimpleModel;
 import net.archiloque.bsoij.generator.bean.ColumnInfo;
 import net.archiloque.bsoij.generator.bean.ColumnTypeInfo;
 import net.archiloque.bsoij.generator.bean.SchemaInfo;
 import net.archiloque.bsoij.generator.bean.SimpleModelInfo;
 import org.apache.commons.lang3.text.WordUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Generate simple models
+ * create simple models
  */
 public class SimpleModelGenerator extends AbstractModelGenerator {
 
@@ -38,35 +48,79 @@ public class SimpleModelGenerator extends AbstractModelGenerator {
         this.modelInfo = modelInfo;
     }
 
-    public void generate() throws IOException {
-        TypeSpec.Builder classBuilder = initializeClass(modelInfo);
+    public void create() throws IOException {
+        TypeSpec.Builder classBuilder = initializeClass(modelInfo, SimpleModel.class);
 
-        classBuilder.addMethod(generateSelect());
+        classBuilder.addMethod(createSelect());
+        classBuilder.addField(createTableNameConstant());
 
-        // Generate fields
-        generateFieldsAttributes().forEach(classBuilder::addField);
+        createFieldsAttributes().forEach(classBuilder::addField);
 
-        // Generate fields
-        generateGetters().forEach(classBuilder::addMethod);
+        createGetters().forEach(classBuilder::addMethod);
+        createSetters().forEach(classBuilder::addMethod);
 
-        // Generate columns declarations
-        generateColumnsConstants().forEach(classBuilder::addField);
+        createFieldsConstants().forEach(classBuilder::addField);
 
-        // Generate the helpers for the columns types
-        generateColumnTypes().forEach(classBuilder::addType);
+        classBuilder.addField(createFieldsConstant());
+        classBuilder.addMethod(createFieldsMethod());
+        classBuilder.addMethod(createTableNameMethod());
+        classBuilder.addMethod(createPrimaryKeyMethod());
 
-        // Generate foreign keys fetch
-        generateForeignKeysFetch().forEach(classBuilder::addMethod);
-        generateForeignedKeysFetch().forEach(classBuilder::addMethod);
+        createColumnTypes().forEach(classBuilder::addType);
+
+        createForeignKeysFetch().forEach(classBuilder::addMethod);
+        createForeignedKeysFetchMethods().forEach(classBuilder::addMethod);
+        createForeignKeySet().forEach(classBuilder::addMethod);
 
         // Write the class
         writeClass(classBuilder);
     }
 
     @NotNull
-    private Stream<MethodSpec> generateForeignKeysFetch() {
+    private FieldSpec createTableNameConstant() {
+        return FieldSpec.
+                builder(String.class, TABLE_NAME_CONSTANT).
+                addModifiers(Modifier.PUBLIC, Modifier.FINAL, Modifier.STATIC).
+                initializer("$S", modelInfo.getModel().getTableName()).
+                build();
+    }
+
+    @NotNull
+    private MethodSpec createTableNameMethod() {
+        return MethodSpec.
+                methodBuilder("getTableName").
+                addModifiers(Modifier.PUBLIC).
+                returns(String.class).
+                addAnnotation(NotNull.class).
+                addAnnotation(Override.class).
+                addStatement("return " + TABLE_NAME_CONSTANT).
+                build();
+    }
+
+    @NotNull
+    private FieldSpec createFieldsConstant() {
+        String statement = "new $T[]{\n";
+        List<Object> statementParams = new ArrayList<>();
+        statementParams.add(Field.class);
+        statement += modelInfo.
+                getColumnInfos().
+                stream().
+                map(ColumnInfo::getColumnConstantName).
+                collect(Collectors.joining(", "));
+        statement += "}";
+
+        return FieldSpec.
+                builder(ArrayTypeName.of(Field.class), FIELDS_CONSTANT).
+                addModifiers(Modifier.PUBLIC, Modifier.FINAL, Modifier.STATIC).
+                initializer(statement, statementParams.toArray()).
+                build();
+    }
+
+
+    @NotNull
+    private Stream<MethodSpec> createForeignKeysFetch() {
         return modelInfo.getForeignKeyInfos().stream().map(foreignKeyInfo -> {
-            // generate something like
+            // create something like
             //   public CustomerModel fetchCustomer() {
             //      return CustomerModel.select().where(CustomerModel.CUSTOMER_ID, Criteria.integerEquals(customerId)).fetchFirst();
             // }
@@ -76,7 +130,7 @@ public class SimpleModelGenerator extends AbstractModelGenerator {
             ClassName targetModelClassName = foreignKeyInfo.getTargetModel().getModelClass();
             ColumnInfo targetPrimaryKeyColumnInfo = foreignKeyInfo.getTargetModel().getPrimaryKeyInfo().getColumnInfo();
             boolean nullableReturn = targetPrimaryKeyColumnInfo.getColumn().isNullable();
-            TypeName returnType =  nullableReturn ?
+            TypeName returnType = nullableReturn ?
                     ParameterizedTypeName.get(ClassName.get(Optional.class), targetModelClassName) : targetModelClassName;
 
             String statement = "return $T." +
@@ -84,11 +138,12 @@ public class SimpleModelGenerator extends AbstractModelGenerator {
                     "$T." + ColumnTypeInfo.getCriteriaEquals(targetPrimaryKeyColumnInfo.getColumnTypeInfo().getColumnType()) + "(" +
                     foreignKeyInfo.getColumnInfo().getColumnFieldName() + ")).fetchFirst()";
 
-            if(! nullableReturn) {
-                statement+= ".get()";
+            if (!nullableReturn) {
+                statement += ".get()";
             }
 
-            return MethodSpec.methodBuilder(methodName).
+            return MethodSpec.
+                    methodBuilder(methodName).
                     addModifiers(Modifier.PUBLIC).
                     addAnnotation(NotNull.class).
                     returns(returnType).
@@ -100,11 +155,37 @@ public class SimpleModelGenerator extends AbstractModelGenerator {
                     build();
         });
     }
+    
+    @NotNull Stream<MethodSpec> createForeignKeySet(){
+        return modelInfo.getForeignKeyInfos().stream().map(foreignKeyInfo -> {
+            String methodName = "set" + WordUtils.capitalize(foreignKeyInfo.getForeignKey().getName());
+            ParameterSpec parameterSpec = ParameterSpec.builder(
+                    foreignKeyInfo.getTargetModel().getModelClass(),
+                    foreignKeyInfo.getForeignKey().getName()).
+                    addAnnotation(foreignKeyInfo.getColumnInfo().getColumnTypeInfo().isNullable() ? Nullable.class : NotNull.class).
+                    build();
+            return MethodSpec.
+                    methodBuilder(methodName).
+                    addModifiers(Modifier.PUBLIC).
+                    addAnnotation(NotNull.class).
+                    addParameter(parameterSpec).
+                    addStatement(
+                            "this." +
+                                    foreignKeyInfo.getColumnInfo().getColumnFieldName() +
+                                    " = " +
+                                    foreignKeyInfo.getForeignKey().getName() +
+                                    "." +
+                                    foreignKeyInfo.getTargetModel().getPrimaryKeyInfo().getColumnInfo().getGetterName() +
+                                    "()"
+                    ).
+                    build();
+        });
+    }
 
     @NotNull
-    private Stream<MethodSpec> generateForeignedKeysFetch() {
+    private Stream<MethodSpec> createForeignedKeysFetchMethods() {
         return modelInfo.getForeignKeyedInfos().stream().map(foreignKeyInfo -> {
-            // generate something like
+            // create something like
             //   public Stream<OrderModel> fetchOrders() {
             //      return OrderModel.select().where(OrderModel.CUSTOMER_ID, Criteria.integerEquals(customer_id)).fetch();
             // }
@@ -118,7 +199,8 @@ public class SimpleModelGenerator extends AbstractModelGenerator {
                     "$T." + ColumnTypeInfo.getCriteriaEquals(foreignKeyColumnInfo.getColumnTypeInfo().getColumnType()) + "(" +
                     localKeyColumnInfo.getColumnFieldName() + ")).fetch()";
 
-            return MethodSpec.methodBuilder(methodName).
+            return MethodSpec.
+                    methodBuilder(methodName).
                     addModifiers(Modifier.PUBLIC).
                     addAnnotation(NotNull.class).
                     returns(ParameterizedTypeName.get(ClassName.get(Stream.class), sourceModelClassName)).
@@ -132,8 +214,9 @@ public class SimpleModelGenerator extends AbstractModelGenerator {
     }
 
     @NotNull
-    private MethodSpec generateSelect() {
-        return MethodSpec.methodBuilder("select").
+    private MethodSpec createSelect() {
+        return MethodSpec.
+                methodBuilder("select").
                 addModifiers(Modifier.PUBLIC, Modifier.STATIC).
                 addAnnotation(NotNull.class).
                 returns(modelInfo.getSelectClass()).
@@ -142,31 +225,68 @@ public class SimpleModelGenerator extends AbstractModelGenerator {
     }
 
     @NotNull
-    private Stream<FieldSpec> generateColumnsConstants() {
+    private Stream<FieldSpec> createFieldsConstants() {
         return modelInfo.getColumnInfos().stream().map(columnInfo -> {
             ColumnTypeInfo columnTypeInfo = columnInfo.getColumnTypeInfo();
             String columnName = columnInfo.getColumn().getName();
             return FieldSpec.
                     builder(columnTypeInfo.getShortClassName(), columnInfo.getColumnConstantName()).
                     addModifiers(Modifier.PUBLIC, Modifier.FINAL, Modifier.STATIC).
-                    initializer("new " + columnTypeInfo.getClassName().simpleName() + "($S)", columnName).
+                    initializer(
+                            "new " + columnTypeInfo.getClassName().simpleName() + "($S, $T::" + columnInfo.getGetterName() + ", $T::" + columnInfo.getSetterName() + ")",
+                            columnName,
+                            modelInfo.getModelClass(),
+                            modelInfo.getModelClass()
+                    ).
                     build();
         });
     }
 
     @NotNull
-    private Stream<MethodSpec> generateGetters() {
+    private MethodSpec createPrimaryKeyMethod() {
+        ColumnInfo columnInfo = modelInfo.getPrimaryKeyInfo().getColumnInfo();
+
+        return MethodSpec.
+                methodBuilder("getPrimaryKeyField").
+                addModifiers(Modifier.PUBLIC).
+                returns(columnInfo.getColumnTypeInfo().getShortClassName()).
+                addAnnotation(NotNull.class).
+                addAnnotation(Override.class).
+                addStatement("return " + columnInfo.getColumnConstantName()).
+                build();
+    }
+
+    @NotNull
+    private Stream<MethodSpec> createGetters() {
         return modelInfo.getColumnInfos().stream().map(columnInfo -> {
             Class valueClass = ColumnTypeInfo.getValueClass(columnInfo.getColumnTypeInfo().getColumnType());
-            return createGetter(columnInfo.getColumnFieldName(), valueClass);
+            return MethodSpec.
+                    methodBuilder(columnInfo.getGetterName()).
+                    addModifiers(Modifier.PUBLIC).
+                    returns(valueClass).
+                    addStatement("return " + columnInfo.getColumnFieldName()).
+                    build();
         });
     }
 
     @NotNull
-    private Stream<FieldSpec> generateFieldsAttributes() {
+    private Stream<MethodSpec> createSetters() {
         return modelInfo.getColumnInfos().stream().map(columnInfo -> {
-            ColumnTypeInfo columnTypeInfo = columnInfo.getColumnTypeInfo();
-            Class valueClass = ColumnTypeInfo.getValueClass(columnTypeInfo.getColumnType());
+            Class valueClass = ColumnTypeInfo.getValueClass(columnInfo.getColumnTypeInfo().getColumnType());
+            String columnFieldName = columnInfo.getColumnFieldName();
+            return MethodSpec.
+                    methodBuilder(columnInfo.getSetterName()).
+                    addModifiers(Modifier.PUBLIC).
+                    addParameter(valueClass, columnFieldName).
+                    addStatement("this." + columnFieldName + " = " + columnFieldName).
+                    build();
+        });
+    }
+
+    @NotNull
+    private Stream<FieldSpec> createFieldsAttributes() {
+        return modelInfo.getColumnInfos().stream().map(columnInfo -> {
+            Class valueClass = ColumnTypeInfo.getValueClass(columnInfo.getColumnTypeInfo().getColumnType());
             return FieldSpec.
                     builder(valueClass, columnInfo.getColumnFieldName()).
                     addModifiers(Modifier.PRIVATE).
@@ -175,7 +295,7 @@ public class SimpleModelGenerator extends AbstractModelGenerator {
     }
 
     @NotNull
-    private Stream<TypeSpec> generateColumnTypes() {
+    private Stream<TypeSpec> createColumnTypes() {
         return modelInfo.getColumnsTypes().stream().map(columnTypeAndNullable -> {
             Class<? extends Field> fieldType = columnTypeAndNullable.getFieldType();
             ClassName className = ColumnTypeInfo.getClassName(schemaInfo, modelInfo, fieldType);
@@ -183,16 +303,37 @@ public class SimpleModelGenerator extends AbstractModelGenerator {
                     constructorBuilder().
                     addModifiers(Modifier.PRIVATE).
                     addParameter(String.class, "columnName").
-                    addStatement("super(columnName)").
+                    addParameter(createGetterFunctionType(columnTypeAndNullable.getColumnType()), "getter").
+                    addParameter(createSetterFunctionType(columnTypeAndNullable.getColumnType()), "setter").
+                    addStatement("super($S, columnName, getter, setter)", modelInfo.getModel().getTableName()).
                     build();
 
             return TypeSpec.
                     classBuilder(className).
                     addModifiers(Modifier.PUBLIC, Modifier.FINAL, Modifier.STATIC).
-                    superclass(fieldType).
+                    superclass(ParameterizedTypeName.get(ClassName.get(fieldType), modelInfo.getModelClass())).
                     addMethod(columnTypeConstructor).
                     build();
         });
     }
+
+    @NotNull
+    private TypeName createGetterFunctionType(@NotNull ColumnType columnType) {
+        return ParameterizedTypeName.get(
+                ClassName.get(Function.class),
+                modelInfo.getModelClass(),
+                ClassName.get(ColumnTypeInfo.getValueClass(columnType))
+        );
+    }
+
+    @NotNull
+    private TypeName createSetterFunctionType(@NotNull ColumnType columnType) {
+        return ParameterizedTypeName.get(
+                ClassName.get(BiConsumer.class),
+                modelInfo.getModelClass(),
+                ClassName.get(ColumnTypeInfo.getValueClass(columnType))
+        );
+    }
+
 
 }

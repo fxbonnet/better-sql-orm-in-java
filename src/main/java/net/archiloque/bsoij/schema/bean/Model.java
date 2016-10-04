@@ -25,6 +25,7 @@ public class Model {
     private PrimaryKey primaryKey;
 
     @NotNull
+    @XStreamAsAttribute
     private String tableName;
 
     @XStreamImplicit
@@ -79,6 +80,7 @@ public class Model {
     public String toString() {
         return "Model{" +
                 "id='" + id + '\'' +
+                "tableName='" + tableName + '\'' +
                 '}';
     }
 

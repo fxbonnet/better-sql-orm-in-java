@@ -39,7 +39,7 @@ public class Validator {
 
             // validate table existence
             try (ResultSet tables = connection.getMetaData().getTables(null, null, tableName, null)) {
-                if (! tables.next()) {
+                if (!tables.next()) {
                     throw new MissingTableException(tableName);
                 }
             }
@@ -48,17 +48,17 @@ public class Validator {
             model.getColumns().forEach(column -> notFoundColumns.put(column.getName(), column));
 
             // validate columns
-            try(ResultSet columns = connection.getMetaData().getColumns(null, null, tableName, null)) {
-                while(columns.next()) {
+            try (ResultSet columns = connection.getMetaData().getColumns(null, null, tableName, null)) {
+                while (columns.next()) {
                     String columnName = columns.getString(COLUMN_NAME_COLUMN_NAME);
-                    if(notFoundColumns.containsKey(columnName)) {
+                    if (notFoundColumns.containsKey(columnName)) {
                         notFoundColumns.remove(columnName);
                     } else {
                         throw new UnknownColumnException(columnName, tableName);
                     }
                 }
             }
-            if(! notFoundColumns.isEmpty()){
+            if (!notFoundColumns.isEmpty()) {
                 throw new MissingColumnException(notFoundColumns.keySet().iterator().next(), tableName);
             }
         }
